@@ -18,7 +18,9 @@ ruff==0.4.4
 
 # Scraping (Phase 2)
 playwright==1.42.0
-beautifulsoup4==4.12.3
+beautifulsoup4
+thefuzz
+python-Levenshtein==4.12.3
 thefuzz==0.22.1
 python-levenshtein==0.25.0
 

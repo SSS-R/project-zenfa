@@ -54,8 +54,8 @@
 ## 🕷️ Phase 2: The Scraper Engine (Data Acquisition)
 - [x] **Base Scraper Architecture:** Create `BaseScraper` and `ScraperConfig` <!-- id: 24 -->
 - [x] **StarTech Spider:** Implement `StarTechScraper` with identified selectors <!-- id: 25 -->
-- [ ] **Ryans Spider:** Implement `RyansScraper` <!-- id: 26 -->
-- [ ] **TechLand/Skyland Spider:** Implement other spiders (Optional) <!-- id: 27 -->
+- [x] **Skyland Spider:** Implement `SkylandScraper` <!-- id: 26 -->
+- [ ] **Ryans Spider:** Implement `RyansScraper` (blocked by Cloudflare, future work) <!-- id: 27 -->
 - [ ] **Normalization Service:** Map raw specs to database models <!-- id: 28 -->
 - [ ] **Scheduling:** Setup Celery/Redis for periodic scraping <!-- id: 29 -->
 
