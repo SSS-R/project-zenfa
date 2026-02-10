@@ -17,3 +17,7 @@ These suggestions are captured for future reference to improve the backend archi
 **Proposed Tiering:**
 *   **Tier A (Hot items):** Scrape every 4-6 hours (e.g., latest GPUs, specialized CPUs).
 *   **Tier B (Legacy/Stable):** Scrape every 30 hours (standard components).
+
+## 4. Models and Scrapers Extension
+**Suggestion:** When adding new components (like Case, Cooler), remember to update `ComponentType` enum and create corresponding models in `component.py` or new files.
+**Why:** Keeping all models in `component.py` might make it large. Consider splitting models into separate files if the file grows beyond 500 lines.
