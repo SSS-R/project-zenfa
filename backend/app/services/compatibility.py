@@ -7,7 +7,9 @@ Defines rules for checking if PC components are compatible with each other.
 from typing import List, Tuple
 from dataclasses import dataclass
 
-from ..models.component import CPU, Motherboard, RAM
+from ..models.cpu import CPU
+from ..models.motherboard import Motherboard
+from ..models.ram import RAM
 
 
 @dataclass
