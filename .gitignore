@@ -1,0 +1,50 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+/__pycache__/
+*.py[cod]
+*$py.class
+.venv
+venv/
+ENV/
+env/
+/backend/venv
+/backend/.venv
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+/frontend/.next
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+*.log
+*.sqlite
+*.db
+
+# env files
+.env
+.env.*
+!.env.example
+
+# editors
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# vercel
+.vercel
