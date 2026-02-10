@@ -23,12 +23,17 @@ async def lifespan(app: FastAPI):
     # Shutdown: Cleanup if needed
 
 
+from .api.endpoints import components
+
 app = FastAPI(
     title=settings.api_title,
     version=settings.api_version,
     description="PC Parts Aggregator & AI Build Recommender for Bangladesh",
     lifespan=lifespan,
 )
+
+# Includes
+app.include_router(components.router, prefix="/components", tags=["Components"])
 
 # CORS configuration for frontend
 app.add_middleware(

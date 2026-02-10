@@ -57,6 +57,7 @@
 - [x] **Skyland Spider:** Implement `SkylandScraper` <!-- id: 26 -->
 - [ ] **Ryans Spider:** Implement `RyansScraper` (blocked by Cloudflare, future work) <!-- id: 27 -->
 - [x] **Normalization Service:** Map raw specs to database models <!-- id: 28 -->
+- [x] **Manual Integration:** Seed DB with live data for demo <!-- id: new -->
 - [ ] **Scheduling:** Setup Celery/Redis for periodic scraping <!-- id: 29 -->
 
 ---

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, use } from "react";
+import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
@@ -65,10 +65,75 @@ const MOCK_PRICES = [
 export default function ProductDetailsPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
     const componentId = parseInt(resolvedParams.id);
-    const component = MOCK_COMPONENTS.find(c => c.id === componentId);
+
+    // State for component data
+    const [component, setComponent] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+
+
     const [activeTab, setActiveTab] = useState("Specification");
 
-    if (!component) {
+    useEffect(() => {
+        const fetchComponent = async () => {
+            try {
+                const res = await fetch(`http://127.0.0.1:8000/components/${componentId}`);
+                if (!res.ok) {
+                    if (res.status === 404) throw new Error("Component not found");
+                    throw new Error("Failed to fetch component");
+                }
+                const data = await res.json();
+
+                // Transform API data to match UI structure
+                const formattedComponent = {
+                    id: data.id,
+                    name: data.name,
+                    category: data.component_type.toUpperCase(),
+                    brand: data.brand || "Unknown",
+                    image: data.image_url,
+                    rating: data.performance_score ? (data.performance_score / 10).toFixed(1) : "N/A", // mapped score to rating
+                    description: `Product ID: ${data.id}. Type: ${data.component_type}.`,
+                    prices: data.prices.map((p: any) => ({
+                        vendor: p.vendor_name,
+                        price: p.price_bdt,
+                        url: p.url,
+                        lastUpdated: new Date(p.last_updated).toLocaleDateString(),
+                        inStock: p.in_stock
+                    })),
+                    // Keep mock detailedSpecs for now as backend doesn't serve it yet
+                    detailedSpecs: {
+                        "General": {
+                            "Type": data.component_type,
+                            "Brand": data.brand
+                        }
+                    },
+                    reviews: [] // No reviews in backend yet
+                };
+
+                setComponent(formattedComponent);
+            } catch (err: any) {
+                console.error(err);
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (componentId) {
+            fetchComponent();
+        }
+    }, [componentId]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-black text-white flex items-center justify-center">
+                <div className="text-[#4f9e97]">Loading...</div>
+            </div>
+        );
+    }
+
+    if (error || !component) {
+
         return (
             <div className="min-h-screen bg-black text-white flex items-center justify-center">
                 <div className="text-center">
@@ -81,8 +146,8 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
         );
     }
 
-    const sortedPrices = [...MOCK_PRICES].sort((a, b) => a.price - b.price);
-    const bestPrice = sortedPrices[0];
+    const sortedPrices = component.prices ? [...component.prices].sort((a: any, b: any) => a.price - b.price) : [];
+    const bestPrice = sortedPrices.length > 0 ? sortedPrices[0] : null;
 
     return (
         <main className="min-h-screen bg-black text-white pt-24 px-6 md:px-12 max-w-[1400px] mx-auto pb-20">
@@ -162,21 +227,32 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                     <div className="bg-gradient-to-r from-[#4f9e97]/20 to-transparent border border-[#4f9e97]/30 rounded-xl p-6 flex items-center justify-between">
                         <div>
                             <span className="text-[#4f9e97] font-bold text-sm uppercase tracking-wider mb-1 block">Best Price Found</span>
-                            <div className="text-3xl font-bold text-white">৳{bestPrice.price.toLocaleString()}</div>
-                            <div className="text-sm text-neutral-400 mt-1">
-                                Available at <span className="text-white font-medium">{bestPrice.vendor}</span>
-                            </div>
+                            {bestPrice ? (
+                                <>
+                                    <div className="text-3xl font-bold text-white">৳{bestPrice.price.toLocaleString()}</div>
+                                    <div className="text-sm text-neutral-400 mt-1">
+                                        Available at <span className="text-white font-medium">{bestPrice.vendor}</span>
+                                    </div>
+                                </>
+                            ) : (
+                                <div className="text-xl text-neutral-400">No prices available</div>
+                            )}
                         </div>
-                        <button className="bg-[#4f9e97] hover:bg-[#3d8b85] text-white px-6 py-3 rounded-lg font-bold transition-all shadow-lg shadow-[#4f9e97]/20">
-                            Visit Store
-                        </button>
+                        {bestPrice && (
+                            <button
+                                onClick={() => window.open(bestPrice.url, '_blank')}
+                                className="bg-[#4f9e97] hover:bg-[#3d8b85] text-white px-6 py-3 rounded-lg font-bold transition-all shadow-lg shadow-[#4f9e97]/20"
+                            >
+                                Visit Store
+                            </button>
+                        )}
                     </div>
 
                     {/* Price Comparison Table */}
                     <div>
                         <h3 className="text-xl font-bold mb-6">Vendor Prices</h3>
                         <div className="space-y-4">
-                            {sortedPrices.map((offer, index) => (
+                            {sortedPrices.map((offer: any, index: number) => (
                                 <motion.div
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
@@ -205,7 +281,10 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                                         <div className="text-xl font-bold text-white group-hover:text-[#4f9e97] transition-colors">
                                             ৳{offer.price.toLocaleString()}
                                         </div>
-                                        <button className="text-xs text-neutral-400 hover:text-white underline mt-1">
+                                        <button
+                                            onClick={() => window.open(offer.url, '_blank')}
+                                            className="text-xs text-neutral-400 hover:text-white underline mt-1"
+                                        >
                                             View Offer
                                         </button>
                                     </div>
@@ -308,7 +387,7 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
                         </div>
 
                         <div className="space-y-6">
-                            {(component.reviews && component.reviews.length > 0) ? component.reviews.map(review => (
+                            {(component.reviews && component.reviews.length > 0) ? component.reviews.map((review: any) => (
                                 <div key={review.id} className="border-b border-neutral-800 pb-6 last:border-0 last:pb-0">
                                     <div className="flex items-center justify-between mb-2">
                                         <div className="font-bold flex items-center gap-2">

@@ -46,7 +46,7 @@ class NormalizationService:
         result = process.extractOne(
             scraped_data.name, 
             choices, 
-            scorer=fuzz.token_sort_ratio
+            scorer=fuzz.token_set_ratio
         )
         
         # extractOne with dict returns (match_string, score, key)

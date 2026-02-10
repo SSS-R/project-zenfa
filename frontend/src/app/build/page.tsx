@@ -9,14 +9,43 @@ export default function BuildPage() {
     const [useCase, setUseCase] = useState("gaming");
     const [isGenerating, setIsGenerating] = useState(false);
     const [showResults, setShowResults] = useState(false);
+    const [buildParts, setBuildParts] = useState<any[]>([]);
 
-    const handleGenerate = () => {
+    const handleGenerate = async () => {
         setIsGenerating(true);
-        // Simulate API call
-        setTimeout(() => {
-            setIsGenerating(false);
+        try {
+            // Fetch real data from backend
+            const response = await fetch("http://127.0.0.1:8000/components/");
+            const data = await response.json();
+
+            // Allow time for animation feel + actually process data
+            // Simple logic: convert backend list to frontend view format
+            // For now, getting *All* components. In real app, we'd send budget/useCase to API.
+
+            const parts = data.map((comp: any) => {
+                // Find best price (lowest valid price)
+                const prices = comp.prices?.filter((p: any) => p.in_stock && p.price_bdt > 0) || [];
+                const bestPrice = prices.length > 0
+                    ? Math.min(...prices.map((p: any) => p.price_bdt))
+                    : 0;
+
+                return {
+                    id: comp.id,
+                    type: comp.component_type?.toUpperCase() || "COMPONENT",
+                    name: comp.name,
+                    price: bestPrice,
+                    vendorCount: prices.length
+                };
+            }).filter((p: any) => p.price > 0); // Only show items with valid prices
+
+            setBuildParts(parts);
             setShowResults(true);
-        }, 2000);
+        } catch (error) {
+            console.error("Failed to fetch components:", error);
+            alert("Failed to connect to backend. Make sure it's running!");
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     return (
@@ -154,14 +183,21 @@ export default function BuildPage() {
                                     </div>
 
                                     <div className="space-y-4 flex-1 overflow-y-auto pr-2 custom-scrollbar">
-                                        {/* Mock Parts */}
-                                        <BuildPart type="CPU" name="AMD Ryzen 5 7600X" price={24500} />
-                                        <BuildPart type="GPU" name="NVIDIA RTX 4060 Ti 8GB" price={45000} />
-                                        <BuildPart type="Motherboard" name="MSI PRO B650M-A WiFi" price={18500} />
-                                        <BuildPart type="RAM" name="Corsair Vengeance 32GB DDR5" price={12500} />
-                                        <BuildPart type="Storage" name="Samsung 980 Pro 1TB NVMe" price={9500} />
-                                        <BuildPart type="Power Supply" name="Corsair CX650M 650W" price={6500} />
-                                        <BuildPart type="Case" name="Montech Air 100 ARGB" price={4500} />
+                                        {buildParts.length > 0 ? (
+                                            buildParts.map((part) => (
+                                                <BuildPart
+                                                    key={part.id}
+                                                    type={part.type}
+                                                    name={part.name}
+                                                    price={part.price}
+                                                />
+                                            ))
+                                        ) : (
+                                            <div className="text-center text-neutral-500 py-10">
+                                                No components found in database.<br />
+                                                (Run the seed script in backend!)
+                                            </div>
+                                        )}
                                     </div>
 
                                     <button className="w-full mt-6 btn-secondary py-3 text-sm">
