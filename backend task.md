@@ -52,26 +52,12 @@
 ---
 
 ## 🕷️ Phase 2: The Scraper Engine (Data Acquisition)
-*Goal: Fetch real-time prices from BD tech sites.*
-
-### 2.1 The Scraper Core
-- [ ] **Base Scraper Class:** Create an abstract class with methods `fetch_page()`, `parse_html()`, `extract_price()`.
-- [ ] **Anti-Detection:** Implement `fake-useragent` and random sleep intervals (2-5s) to avoid IP bans.
-
-### 2.2 Site-Specific Spiders
-- [ ] **StarTech Spider:** Target specific category pages (Processor, GPU, RAM). Handle pagination.
-- [ ] **Ryans Spider:** Handle their specific DOM structure.
-- [ ] **TechLand/Skyland Spider:** (Optional for MVP).
-
-### 2.3 The "Normalization" Problem (CRITICAL)
-*How to map "Ryzen 5 7600" (Shop A) to "AMD Ryzen 5 7600 Gaming Processor" (Shop B).*
-- [ ] **Fuzzy Matching Service:** Use `TheFuzz` or `RapidFuzz`.
-    -   Logic: If `string_similarity > 90%`, link `PriceListing` to the same `Component ID`.
-    -   Fallback: If similarity is 70-89%, flag for "Manual Admin Review".
-
-### 2.4 Scheduling
-- [ ] **Celery Beat:** Set up a task to run `scrape_all_vendors()` every **30 hours**.
-    -   *Why 30 hours?* This ensures the scrape time rotates daily (Day 1: 2 PM, Day 2: 8 PM) to avoid predictable load spikes on target sites.
+- [x] **Base Scraper Architecture:** Create `BaseScraper` and `ScraperConfig` <!-- id: 24 -->
+- [x] **StarTech Spider:** Implement `StarTechScraper` with identified selectors <!-- id: 25 -->
+- [ ] **Ryans Spider:** Implement `RyansScraper` <!-- id: 26 -->
+- [ ] **TechLand/Skyland Spider:** Implement other spiders (Optional) <!-- id: 27 -->
+- [ ] **Normalization Service:** Map raw specs to database models <!-- id: 28 -->
+- [ ] **Scheduling:** Setup Celery/Redis for periodic scraping <!-- id: 29 -->
 
 ---
 
