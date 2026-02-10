@@ -10,6 +10,14 @@ class ComponentType(str, Enum):
     PSU = "psu"
     CASE = "case"
     COOLER = "cooler"
+    MONITOR = "monitor"
+    LAPTOP = "laptop"
+    KEYBOARD = "keyboard"
+    MOUSE = "mouse"
+    HEADPHONE = "headphone"
+    UPS = "ups"
+    CASE_FAN = "case_fan"
+    ACCESSORY = "accessory"
 
 class SocketType(str, Enum):
     """CPU socket types."""
@@ -44,3 +52,28 @@ class PSUkb(str, Enum):
     TITANIUM = "80+ Titanium"
     WHITE = "80+ White"
     NONE = "None"
+
+class CoolerType(str, Enum):
+    """CPU Cooler types."""
+    AIR = "Air"
+    LIQUID = "Liquid"
+
+class MonitorPanelType(str, Enum):
+    """Monitor Panel types."""
+    IPS = "IPS"
+    VA = "VA"
+    TN = "TN"
+    OLED = "OLED"
+
+class KeyboardType(str, Enum):
+    """Keyboard types."""
+    MECHANICAL = "Mechanical"
+    MEMBRANE = "Membrane"
+
+class PeripheralType(str, Enum):
+    """Peripheral types."""
+    KEYBOARD = "Keyboard"
+    MOUSE = "Mouse"
+    HEADPHONE = "Headphone"
+    UPS = "UPS"
+
