@@ -9,6 +9,19 @@ class StarTechScraper(BaseScraper):
 
     VENDOR_NAME = "StarTech"
 
+    def extract_product_urls(self, html: str) -> list[str]:
+        """Extracts product URLs from StarTech category page."""
+        soup = self.parse_html(html)
+        urls = []
+        
+        # StarTech uses .p-item-name a
+        for a_tag in soup.select(".p-item .p-item-name a"):
+            href = a_tag.get("href")
+            if href:
+                urls.append(href)
+                
+        return urls
+
     async def parse_product(self, html: str, url: str) -> Optional[ScrapedProduct]:
         """Parses a StarTech product page."""
         soup = self.parse_html(html)

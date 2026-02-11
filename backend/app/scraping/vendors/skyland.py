@@ -10,6 +10,32 @@ class SkylandScraper(BaseScraper):
 
     VENDOR_NAME = "Skyland"
 
+    def extract_product_urls(self, html: str) -> list[str]:
+        """Extracts product URLs from Skyland category page."""
+        soup = self.parse_html(html)
+        urls = []
+        
+        # Skyland uses .product-thumb .caption a (or h4 a)
+        # Try multiple selectors
+        selectors = [
+            ".product-thumb .caption h4 a",
+            ".product-thumb .name a",
+            ".product-layout .caption h4 a"
+        ]
+        
+        for selector in selectors:
+            links = soup.select(selector)
+            if links:
+                for a_tag in links:
+                    href = a_tag.get("href")
+                    if href and href not in urls:
+                        urls.append(href)
+                # If we found links with one selector, likely we're good
+                if urls:
+                    break
+                    
+        return urls
+
     async def parse_product(self, html: str, url: str) -> Optional[ScrapedProduct]:
         """Parses a Skyland product page."""
         soup = self.parse_html(html)

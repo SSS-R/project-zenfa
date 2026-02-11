@@ -45,6 +45,11 @@ class BaseScraper(ABC):
         """Parses the product page HTML and returns a ScrapedProduct object."""
         pass
 
+    @abstractmethod
+    def extract_product_urls(self, html: str) -> list[str]:
+        """Extracts product URLs from a category page HTML."""
+        pass
+
     def clean_price(self, price_str: str) -> int:
         """Removes currency symbols and commas from price string."""
         if not price_str:
