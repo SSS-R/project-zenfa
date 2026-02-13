@@ -161,24 +161,34 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mb-16">
                 {/* Left Column: Product Info & Image */}
                 <div className="lg:col-span-1 space-y-8">
-                    {/* Image Placeholder - Mock Ad Style */}
+                    {/* Image Placeholder or Actual Image */}
                     <div className="aspect-square bg-gradient-to-br from-neutral-900 to-neutral-800 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-neutral-600 relative overflow-hidden">
-                        {/* Mock Banner */}
-                        <div className="absolute top-0 left-0 right-0 bg-amber-500 text-black text-[10px] font-bold uppercase tracking-wider text-center py-1">
-                            📷 Mock Product Image
-                        </div>
+                        {component.image && component.image.startsWith("http") ? (
+                            <img
+                                src={component.image}
+                                alt={component.name}
+                                className="w-full h-full object-contain p-8 mix-blend-screen"
+                            />
+                        ) : (
+                            <>
+                                {/* Mock Banner */}
+                                <div className="absolute top-0 left-0 right-0 bg-amber-500 text-black text-[10px] font-bold uppercase tracking-wider text-center py-1">
+                                    📷 Mock Product Image
+                                </div>
 
-                        {/* Icon */}
-                        <svg className="w-20 h-20 text-neutral-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
+                                {/* Icon */}
+                                <svg className="w-20 h-20 text-neutral-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
 
-                        <span className="text-neutral-500 text-4xl font-bold mb-2">
-                            {component.category}
-                        </span>
-                        <span className="text-neutral-600 text-xs uppercase tracking-wider">
-                            Image will load from API
-                        </span>
+                                <span className="text-neutral-500 text-4xl font-bold mb-2">
+                                    {component.category}
+                                </span>
+                                <span className="text-neutral-600 text-xs uppercase tracking-wider">
+                                    Image will load from API
+                                </span>
+                            </>
+                        )}
                     </div>
 
                     {/* Key Specs Summary */}

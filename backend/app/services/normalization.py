@@ -10,22 +10,9 @@ from ..models.enums import ComponentType
 from ..scraping.schemas import ScrapedProduct
 
 class NormalizationService:
-    def _get_candidates(self, session: Session, component_type: ComponentType) -> List[Component]:
-        # We need to return the *CPUs* (or valid subtype) but we need their names from Component
-        # Actually simplest way: Query Component where type matches
-        # Then we can access subtypes if needed for validation
-         
-        # But wait, validation logic expects 'candidate' to be the subtype (CPU/RAM) to check specific fields
-        # So we should query the Subtype and join Component to get the name
-        
-        if component_type == ComponentType.CPU:
-            return session.exec(select(CPU, Component).join(Component)).all()
-        elif component_type == ComponentType.GPU:
-             return session.exec(select(GPU, Component).join(Component)).all()
-        elif component_type == ComponentType.RAM:
-             return session.exec(select(RAM, Component).join(Component)).all()
-        
-        return []
+    def _get_candidates(self, session: Session, component_type: ComponentType) -> List[Any]:
+        # Return list of Components directly, as we might not have subtype records yet
+        return session.exec(select(Component).where(Component.component_type == component_type)).all()
 
     def normalize_product(self, session: Session, scraped_data: ScrapedProduct, component_type: ComponentType) -> Optional[int]:
         """
@@ -40,8 +27,7 @@ class NormalizationService:
             return None
             
         # 2. Fuzzy Match Name
-        # candidate[1] is the Component object which has the name
-        choices = {c[1].id: c[1].name for c in candidates}
+        choices = {c.id: c.name for c in candidates}
         
         result = process.extractOne(
             scraped_data.name, 
@@ -59,12 +45,12 @@ class NormalizationService:
         if score < 70:
             return None
 
-        # Find the full tuple (Subtype, Component) for the matched ID
-        candidate_tuple = next((c for c in candidates if c[1].id == best_match_id), None)
-        if not candidate_tuple:
+        # Find the component object
+        component_obj = next((c for c in candidates if c.id == best_match_id), None)
+        if not component_obj:
             return None
             
-        subtype_obj, component_obj = candidate_tuple
+        subtype_obj = None # We don't have this anymore in the tuple
 
         # 3. Component-Specific Validation (The "Careful" Part)
         if not self._validate_match(scraped_data, subtype_obj, component_obj, component_type):

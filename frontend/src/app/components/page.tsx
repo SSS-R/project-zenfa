@@ -4,16 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-const MOCK_COMPONENTS = [
-    { id: 1, name: "AMD Ryzen 5 7600X", category: "CPU", price: 24500, image: "cpu", brand: "AMD", rating: 4.8 },
-    { id: 2, name: "Intel Core i5-13600K", category: "CPU", price: 32000, image: "cpu-intel", brand: "Intel", rating: 4.9 },
-    { id: 3, name: "NVIDIA RTX 4060 Ti", category: "GPU", price: 45000, image: "gpu", brand: "NVIDIA", rating: 4.7 },
-    { id: 4, name: "G.Skill Trident Z5 32GB", category: "RAM", price: 14500, image: "ram", brand: "G.Skill", rating: 4.9 },
-    { id: 5, name: "Samsung 990 Pro 1TB", category: "Storage", price: 11500, image: "ssd", brand: "Samsung", rating: 5.0 },
-    { id: 6, name: "NZXT Kraken Elite 360", category: "Cooler", price: 28000, image: "cooler", brand: "NZXT", rating: 4.6 },
-    { id: 7, name: "Lian Li O11 Vision", category: "Case", price: 16500, image: "case", brand: "Lian Li", rating: 4.8 },
-    { id: 8, name: "Corsair RM850e", category: "PSU", price: 13500, image: "psu", brand: "Corsair", rating: 4.7 },
-];
+// MOCK_COMPONENTS removed
+import { useEffect } from "react";
+import { getCache, setCache } from "@/utils/cache";
 
 const CATEGORIES = ["All", "CPU", "GPU", "Motherboard", "RAM", "Storage", "PSU", "Case", "Cooler"];
 
@@ -21,11 +14,72 @@ export default function ComponentsPage() {
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [searchQuery, setSearchQuery] = useState("");
 
-    const filteredComponents = MOCK_COMPONENTS.filter(item => {
-        const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
-        const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-        return matchesCategory && matchesSearch;
-    });
+    const [components, setComponents] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch data from API
+    useEffect(() => {
+        const fetchData = async () => {
+            const cacheKey = `components-${selectedCategory}-${searchQuery}`;
+            const cachedData = getCache(cacheKey);
+
+            if (cachedData) {
+                setComponents(cachedData);
+                setLoading(false);
+                return;
+            }
+
+            setLoading(true);
+            try {
+                const params = new URLSearchParams();
+                if (selectedCategory !== "All") {
+                    params.append("category", selectedCategory.toLowerCase()); // Backend expects lowercase enum
+                }
+                if (searchQuery) {
+                    params.append("search", searchQuery);
+                }
+
+                const res = await fetch(`http://127.0.0.1:8000/components/?${params.toString()}`);
+                const data = await res.json();
+
+                // Map API data to UI format
+                const formatted = data.map((item: any) => {
+                    // Find best price
+                    const prices = item.prices || [];
+                    const bestPrice = prices.length > 0
+                        ? Math.min(...prices.map((p: any) => p.price_bdt))
+                        : 0;
+
+                    return {
+                        id: item.id,
+                        name: item.name,
+                        category: item.component_type.toUpperCase(),
+                        price: bestPrice,
+                        // Use real image if available, else placeholder based on type
+                        image: item.image_url || "cpu",
+                        brand: item.brand,
+                        rating: (item.performance_score / 20).toFixed(1) // Scale 0-100 to 0-5
+                    };
+                });
+
+                setCache(cacheKey, formatted);
+                setComponents(formatted);
+            } catch (error) {
+                console.error("Failed to fetch components:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        // Debounce search
+        const timeoutId = setTimeout(() => {
+            fetchData();
+        }, 300);
+
+        return () => clearTimeout(timeoutId);
+    }, [selectedCategory, searchQuery]);
+
+    const filteredComponents = components;
 
     return (
         <main className="min-h-screen bg-black text-white pt-24 px-6 md:px-12 max-w-[1600px] mx-auto">
@@ -88,7 +142,7 @@ export default function ComponentsPage() {
                             {selectedCategory === "All" ? "All Components" : selectedCategory}
                         </h1>
                         <span className="text-neutral-500 text-sm">
-                            Showing {filteredComponents.length} results
+                            {loading ? "Loading..." : `Showing ${filteredComponents.length} results`}
                         </span>
                     </div>
 
@@ -107,11 +161,19 @@ export default function ComponentsPage() {
                                 className="glass-card group hover:border-[#4f9e97]/50 transition-all duration-300 hover:-translate-y-1 p-0 overflow-hidden"
                             >
                                 <Link href={`/components/${item.id}`} className="block h-full">
-                                    {/* Image Placeholder */}
+                                    {/* Image Placeholder or Actual Image */}
                                     <div className="h-48 bg-neutral-900/50 flex items-center justify-center relative group-hover:bg-neutral-900/30 transition-colors">
-                                        <span className="text-neutral-600 text-4xl font-bold opacity-20 group-hover:opacity-40 transition-opacity">
-                                            {item.category}
-                                        </span>
+                                        {item.image && item.image.startsWith("http") ? (
+                                            <img
+                                                src={item.image}
+                                                alt={item.name}
+                                                className="h-full w-full object-contain p-4 mix-blend-screen"
+                                            />
+                                        ) : (
+                                            <span className="text-neutral-600 text-4xl font-bold opacity-20 group-hover:opacity-40 transition-opacity">
+                                                {item.category}
+                                            </span>
+                                        )}
 
                                         {/* Vendor Badges */}
                                         <div className="absolute top-4 right-4 flex gap-1">

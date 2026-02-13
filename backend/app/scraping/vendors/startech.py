@@ -4,6 +4,8 @@ import re
 from ..base_scraper import BaseScraper
 from ..schemas import ScrapedProduct
 
+from urllib.parse import urljoin
+
 class StarTechScraper(BaseScraper):
     """Scraper for StarTech website."""
 
@@ -22,6 +24,15 @@ class StarTechScraper(BaseScraper):
                 
         return urls
 
+    def extract_next_page_url(self, html: str) -> Optional[str]:
+        """Extracts the URL of the next page from StarTech category page."""
+        soup = self.parse_html(html)
+        # Look for pagination "NEXT" link
+        next_link = soup.find("a", string="NEXT")
+        if next_link:
+            return next_link.get("href")
+        return None
+
     async def parse_product(self, html: str, url: str) -> Optional[ScrapedProduct]:
         """Parses a StarTech product page."""
         soup = self.parse_html(html)
@@ -35,13 +46,23 @@ class StarTechScraper(BaseScraper):
         # 2. Price
         price = 0
         
-        # Priority 1: Meta Tag (Most reliable)
-        meta_price = soup.select_one("meta[property='product:price:amount']")
-        if meta_price and meta_price.get("content"):
+        # Priority 1: Visual "Special Price" / "New Price"
+        # StarTech uses <ins> for discounted price, or .price-new
+        price_new = soup.select_one("ins") or soup.select_one(".price-new")
+        if price_new:
             try:
-                price = int(float(meta_price["content"]))
-            except (ValueError, TypeError):
+                price = self.clean_price(price_new.text)
+            except:
                 pass
+
+        # Priority 2: Meta Tag (Fallback if no special price)
+        if price == 0:
+            meta_price = soup.select_one("meta[property='product:price:amount']")
+            if meta_price and meta_price.get("content"):
+                try:
+                    price = int(float(meta_price["content"]))
+                except (ValueError, TypeError):
+                    pass
 
         # Priority 2: Visual Elements (If meta fails or we want specific cash price)
         if price == 0:

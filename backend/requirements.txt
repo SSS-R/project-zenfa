@@ -15,12 +15,10 @@ redis==5.0.3
 pydantic-settings==2.2.1
 python-dotenv==1.0.1
 ruff==0.4.4
+tenacity==8.2.3
 
 # Scraping (Phase 2)
 playwright==1.42.0
-beautifulsoup4
-thefuzz
-python-Levenshtein==4.12.3
+beautifulsoup4==4.12.3
 thefuzz==0.22.1
-python-levenshtein==0.25.0
-
+python-Levenshtein==0.25.0

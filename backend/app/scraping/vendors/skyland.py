@@ -36,16 +36,40 @@ class SkylandScraper(BaseScraper):
                     
         return urls
 
+    def extract_next_page_url(self, html: str) -> Optional[str]:
+        """Extracts the URL of the next page from Skyland category page."""
+        soup = self.parse_html(html)
+        # Look for pagination "Next" link
+        # Common in OpenCart specific themes: class="next" or text ">"
+        next_link = soup.select_one("ul.pagination .next_link") or \
+                    soup.select_one("ul.pagination .next") or \
+                    soup.find("a", string=">") or \
+                    soup.find("a", string="&gt;")
+        
+        if next_link:
+            return next_link.get("href")
+        return None
+
     async def parse_product(self, html: str, url: str) -> Optional[ScrapedProduct]:
         """Parses a Skyland product page."""
         soup = self.parse_html(html)
 
         # 1. Product Name (Global)
         name_tag = soup.select_one("h1")
-        if not name_tag:
-            return None
-        name = name_tag.text.strip()
-
+        if name_tag:
+            name = name_tag.text.strip()
+        else:
+            # Fallback to meta title or page title
+            name = soup.select_one("meta[property='og:title']")
+            if name:
+                name = name.get("content")
+            elif soup.title:
+                name = soup.title.text.strip()
+                # Remove "Price in BD" suffix if common
+                name = name.replace(" Price in BD", "").replace(" | Skyland", "")
+            else:
+                return None
+        
         # 2. Price
         price = 0
         
@@ -58,25 +82,39 @@ class SkylandScraper(BaseScraper):
                 pass
         
         if price == 0:
-            # Strategy: Find price that appears AFTER the product name (h1)
-            # This avoids header cart totals/promos
+            # Scope search to the product details section to avoid sidebar/footer prices
+            # Skyland usually has a #content or .product-info block
+            product_block = soup.select_one("#content") or soup.select_one(".product-info") or soup
             
-            # Priority 1: Special/New Price
-            price_new_tag = name_tag.find_next(class_="price-new")
+            # Priority 1: Special/New Price WITHIN product block
+            price_new_tag = product_block.select_one(".price-new")
             if price_new_tag:
                  price = self.clean_price(price_new_tag.text)
             
             # Priority 2: Standard/Product Price
             if price == 0:
-                product_price_tag = name_tag.find_next(class_="product-price")
+                product_price_tag = product_block.select_one(".product-price")
                 if product_price_tag:
                      price = self.clean_price(product_price_tag.text)
 
-            # Priority 3: Fallback generic price
+            # Priority 3: Fallback generic price, but be careful of "price" class usage elsewhere
             if price == 0:
-                 price_tag = name_tag.find_next(class_="price")
-                 if price_tag:
-                      price = self.clean_price(price_tag.text)
+                 # Look for ul.list-unstyled.price (common Opencart theme structure)
+                 price_list = product_block.select_one("ul.list-unstyled.price")
+                 if price_list:
+                     price_item = price_list.select_one("li h2") or price_list.select_one("li")
+                     if price_item:
+                         price = self.clean_price(price_item.text)
+            
+            # Priority 4: Regex Search in Description (Last Resort)
+            if price == 0:
+                # Search for "is X,XXX৳" pattern common in SEO text
+                import re
+                text_content = product_block.get_text(separator=" ", strip=True)
+                # Matches: "price is 8,500", "price ... is 8,500"
+                match = re.search(r"price.*?is\s*([\d,]+)\s*৳", text_content, re.IGNORECASE)
+                if match:
+                    price = self.clean_price(match.group(1))
 
         # 3. Status
         status = "Unknown"

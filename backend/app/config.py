@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     # Database
-    database_url: str = "postgresql://zenfa_user:zenfa_password@localhost:5432/zenfa_db"
+    database_url: str = "postgresql://postgres:zenfa_password@localhost:5432/postgres"
     
     # Redis
     redis_url: str = "redis://localhost:6379"
