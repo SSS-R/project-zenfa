@@ -1,7 +1,8 @@
 from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING, Dict, Any
 from datetime import datetime
 from enum import Enum
+from sqlalchemy import Column, JSON
 
 if TYPE_CHECKING:
     from .component import Component
@@ -28,6 +29,7 @@ class VendorPrice(SQLModel, table=True):
     price_bdt: int  # Price in Bangladeshi Taka
     url: str  # Direct link to product page
     in_stock: bool = True
+    raw_data: Optional[Dict[str, Any]] = Field(default=None, sa_column=Column(JSON))
     last_updated: datetime = Field(default_factory=datetime.utcnow)
     
     # Relationship

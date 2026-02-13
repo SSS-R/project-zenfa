@@ -26,6 +26,13 @@ async def main():
             print("\n--- Specs (Top 5) ---")
             for k, v in list(product.specs.items())[:5]:
                 print(f"{k}: {v}")
+            
+            print("\n--- Raw Data ---")
+            if product.raw_data and "html" in product.raw_data:
+                print(f"Raw HTML captured: Yes ({len(product.raw_data['html'])} chars)")
+            else:
+                print("Raw HTML captured: No")
+
         else:
             print("Failed to parse product.")
     else:

@@ -11,4 +11,5 @@ class ScrapedProduct(BaseModel):
     image_url: Optional[str] = None
     status: str  # "In Stock", "Out of Stock", etc.
     specs: Dict[str, Any] = {}  # Key-value pairs of specifications
+    raw_data: Optional[Dict[str, Any]] = None  # Store raw HTML/JSON for debugging/re-parsing
     scraped_at: datetime = datetime.utcnow()

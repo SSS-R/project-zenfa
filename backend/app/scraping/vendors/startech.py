@@ -96,7 +96,8 @@ class StarTechScraper(BaseScraper):
             url=url,
             image_url=image_url,
             status=status,
-            specs=specs
+            specs=specs,
+            raw_data={"html": html} 
         )
 
     def _extract_specs(self, soup: BeautifulSoup) -> Dict[str, str]:

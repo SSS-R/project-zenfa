@@ -115,14 +115,18 @@ async def process_vendor_category(
                         existing_price.price_bdt = scraped_data.price
                         existing_price.last_updated = datetime.utcnow()
                         existing_price.in_stock = (scraped_data.status.lower() == "in stock")
+                        existing_price.in_stock = (scraped_data.status.lower() == "in stock")
                         existing_price.url = scraped_data.url
+                        existing_price.raw_data = scraped_data.raw_data
                     else:
                         new_price = VendorPrice(
                             component_id=match_id,
                             vendor_name=scraper.VENDOR_NAME,
                             price_bdt=scraped_data.price,
+                            price_bdt=scraped_data.price,
                             url=scraped_data.url,
                             in_stock=(scraped_data.status.lower() == "in stock"),
+                            raw_data=scraped_data.raw_data,
                             last_updated=datetime.utcnow()
                         )
                         session.add(new_price)
@@ -173,8 +177,11 @@ async def process_vendor_category(
                                 component_id=new_component.id,
                                 vendor_name=scraper.VENDOR_NAME,
                                 price_bdt=scraped_data.price,
+                                vendor_name=scraper.VENDOR_NAME,
+                                price_bdt=scraped_data.price,
                                 url=scraped_data.url,
                                 in_stock=(scraped_data.status.lower() == "in stock"),
+                                raw_data=scraped_data.raw_data,
                                 last_updated=datetime.utcnow()
                             )
                             session.add(new_price)
