@@ -39,7 +39,8 @@ export default function ComponentsPage() {
                     params.append("search", searchQuery);
                 }
 
-                const res = await fetch(`http://127.0.0.1:8000/components/?${params.toString()}`);
+                const apiBase = `http://${window.location.hostname}:8000`;
+                const res = await fetch(`${apiBase}/components/?${params.toString()}`);
                 const data = await res.json();
 
                 // Map API data to UI format

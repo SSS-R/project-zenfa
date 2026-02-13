@@ -77,7 +77,8 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
     useEffect(() => {
         const fetchComponent = async () => {
             try {
-                const res = await fetch(`http://127.0.0.1:8000/components/${componentId}`);
+                const apiBase = `http://${window.location.hostname}:8000`;
+                const res = await fetch(`${apiBase}/components/${componentId}`);
                 if (!res.ok) {
                     if (res.status === 404) throw new Error("Component not found");
                     throw new Error("Failed to fetch component");
