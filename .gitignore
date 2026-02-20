@@ -48,3 +48,6 @@ env/
 
 # vercel
 .vercel
+
+# dumps
+.database

@@ -9,9 +9,10 @@ import Image from "next/image";
 export function Navbar() {
     const pathname = usePathname();
     const isHome = pathname === "/";
+    const isComponents = pathname === "/components";
 
     return (
-        <nav className={`fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-6 md:px-8 py-6 transition-all duration-300 ${isHome ? 'bg-transparent' : 'bg-black/80 backdrop-blur-md border-b border-white/5'}`}>
+        <nav className={`${isComponents ? 'absolute' : 'fixed'} top-4 left-4 right-4 lg:left-12 lg:right-12 z-50 flex items-center justify-between px-6 md:px-8 py-4 transition-all duration-300 bg-black/20 backdrop-blur-xl border border-white/10 rounded-2xl shadow-[0_0_30px_rgba(0,0,0,0.5)]`}>
             <Link href="/" className="flex items-center gap-2 group">
                 <div className="relative w-10 h-10 transition-transform duration-300 group-hover:scale-105">
                     <Image
