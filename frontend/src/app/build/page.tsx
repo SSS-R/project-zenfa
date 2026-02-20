@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
+import SpiralBackground from "@/components/SpiralBackground";
+import SplineBackground from "@/components/SplineBackground";
 
 export default function BuildPage() {
     const [budget, setBudget] = useState(80000); // Default BDT
@@ -50,8 +52,11 @@ export default function BuildPage() {
 
     return (
         <main className="min-h-screen bg-black text-white relative overflow-hidden">
+            {/* <SpiralBackground /> */}
+            <SplineBackground />
+
             {/* Navbar is global in layout, but we might need to handle spacing if it's fixed */}
-            <div className="pt-24 px-6 md:px-12 max-w-7xl mx-auto">
+            <div className="pt-24 px-6 md:px-12 max-w-7xl mx-auto relative z-10">
 
                 {/* Header */}
                 <motion.div
