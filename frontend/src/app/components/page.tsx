@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { getCache, setCache } from "@/utils/cache";
+import { LampContainer } from "@/components/ui/lamp";
 
 const CATEGORIES = [
     "All",
@@ -185,11 +186,10 @@ export default function ComponentsPage() {
                     <button
                         key={pageNum}
                         onClick={() => setCurrentPage(pageNum)}
-                        className={`px-4 py-2 rounded-lg transition-colors ${
-                            pageNum === meta.page
-                                ? "bg-[#4f9e97] text-white"
-                                : "bg-neutral-800 text-white hover:bg-neutral-700"
-                        }`}
+                        className={`px-4 py-2 rounded-lg transition-colors ${pageNum === meta.page
+                            ? "bg-[#4f9e97] text-white"
+                            : "bg-neutral-800 text-white hover:bg-neutral-700"
+                            }`}
                     >
                         {pageNum}
                     </button>
@@ -208,8 +208,12 @@ export default function ComponentsPage() {
     };
 
     return (
-        <main className="min-h-screen bg-black text-white pt-24 px-6 md:px-12 max-w-[1600px] mx-auto">
-            <div className="flex flex-col lg:flex-row gap-8">
+        <main className="min-h-screen bg-black text-white px-6 md:px-12 max-w-[1600px] mx-auto">
+            <div className="relative z-0 w-[120%] -ml-[10%] xl:w-full xl:ml-0 flex flex-col items-center justify-center -mt-8 pt-8 md:-mt-16 md:pt-16 pointer-events-none">
+                <LampContainer className="min-h-[30vh] md:min-h-[40vh] w-full" />
+            </div>
+
+            <div className="flex flex-col lg:flex-row gap-8 relative z-10 w-full -mt-24 md:-mt-48">
                 {/* Filters Sidebar (Mobile: Top Bar, Desktop: Sidebar) */}
                 <aside className="w-full lg:w-64 shrink-0 space-y-8">
                     <div className="glass-card p-6 sticky top-28">
@@ -255,11 +259,10 @@ export default function ComponentsPage() {
                                         onClick={() =>
                                             handleCategoryChange(category)
                                         }
-                                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-all ${
-                                            selectedCategory === category
-                                                ? "bg-[#4f9e97]/10 text-[#4f9e97] font-medium"
-                                                : "text-neutral-400 hover:text-white hover:bg-white/5"
-                                        }`}
+                                        className={`w-full text-left px-3 py-2 rounded-md text-sm transition-all ${selectedCategory === category
+                                            ? "bg-[#4f9e97]/10 text-[#4f9e97] font-medium"
+                                            : "text-neutral-400 hover:text-white hover:bg-white/5"
+                                            }`}
                                     >
                                         {category}
                                     </button>
@@ -298,10 +301,10 @@ export default function ComponentsPage() {
                             {loading
                                 ? "Loading..."
                                 : error
-                                  ? "Error loading components"
-                                  : meta
-                                    ? `Showing ${components.length} of ${meta.total.toLocaleString()} results`
-                                    : `${components.length} results`}
+                                    ? "Error loading components"
+                                    : meta
+                                        ? `Showing ${components.length} of ${meta.total.toLocaleString()} results`
+                                        : `${components.length} results`}
                         </span>
                     </div>
 
@@ -382,9 +385,9 @@ export default function ComponentsPage() {
                                             {/* Image */}
                                             <div className="h-48 bg-neutral-900/50 flex items-center justify-center relative group-hover:bg-neutral-900/30 transition-colors">
                                                 {item.image &&
-                                                item.image.startsWith(
-                                                    "http",
-                                                ) ? (
+                                                    item.image.startsWith(
+                                                        "http",
+                                                    ) ? (
                                                     <img
                                                         src={item.image}
                                                         alt={item.name}
