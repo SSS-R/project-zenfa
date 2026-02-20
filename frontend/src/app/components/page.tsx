@@ -5,6 +5,7 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { getCache, setCache } from "@/utils/cache";
 import { LampContainer } from "@/components/ui/lamp";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 const CATEGORIES = [
     "All",
@@ -376,86 +377,96 @@ export default function ComponentsPage() {
                                         animate={{ opacity: 1, scale: 1 }}
                                         transition={{ duration: 0.2 }}
                                         key={item.id}
-                                        className="glass-card group hover:border-[#4f9e97]/50 transition-all duration-300 hover:-translate-y-1 p-0 overflow-hidden"
+                                        className="relative h-full rounded-[1.5rem] border border-neutral-800/50 p-1 md:rounded-[1.75rem] md:p-2 group transition-transform duration-300 hover:-translate-y-1 list-none"
                                     >
-                                        <Link
-                                            href={`/components/${item.id}`}
-                                            className="block h-full"
-                                        >
-                                            {/* Image */}
-                                            <div className="h-48 bg-neutral-900/50 flex items-center justify-center relative group-hover:bg-neutral-900/30 transition-colors">
-                                                {item.image &&
-                                                    item.image.startsWith(
-                                                        "http",
-                                                    ) ? (
-                                                    <img
-                                                        src={item.image}
-                                                        alt={item.name}
-                                                        className="h-full w-full object-contain p-4 mix-blend-screen"
-                                                    />
-                                                ) : (
-                                                    <span className="text-neutral-600 text-4xl font-bold opacity-20 group-hover:opacity-40 transition-opacity">
-                                                        {item.category}
-                                                    </span>
-                                                )}
-
-                                                {/* Vendor Badges */}
-                                                <div className="absolute top-4 right-4 flex gap-1">
-                                                    <span className="bg-neutral-800/80 backdrop-blur-sm text-[10px] px-2 py-1 rounded border border-neutral-700 text-neutral-300">
-                                                        In Stock
-                                                    </span>
-                                                </div>
-                                            </div>
-
-                                            {/* Content */}
-                                            <div className="p-5">
-                                                <div className="flex justify-between items-start mb-2">
-                                                    <span className="text-xs text-neutral-500 font-medium uppercase tracking-wide">
-                                                        {item.brand}
-                                                    </span>
-                                                    <div className="flex items-center gap-1 text-xs text-[#FFC107]">
-                                                        <svg
-                                                            className="w-3 h-3 fill-current"
-                                                            viewBox="0 0 20 20"
-                                                        >
-                                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                                        </svg>
-                                                        {item.rating}
-                                                    </div>
-                                                </div>
-
-                                                <h3 className="font-bold text-lg mb-4 line-clamp-2 leading-tight group-hover:text-[#4f9e97] transition-colors">
-                                                    {item.name}
-                                                </h3>
-
-                                                <div className="flex items-center justify-between mt-auto">
-                                                    <div>
-                                                        <span className="text-xs text-neutral-500 block">
-                                                            Best Price
+                                        <GlowingEffect
+                                            spread={40}
+                                            glow={true}
+                                            disabled={false}
+                                            proximity={64}
+                                            inactiveZone={0.01}
+                                            borderWidth={3}
+                                        />
+                                        <div className="relative h-full w-full flex flex-col overflow-hidden rounded-[1.25rem] border border-neutral-800/50 bg-neutral-950/80 backdrop-blur-xl shadow-sm transition-colors group-hover:border-[#4f9e97]/50 p-0">
+                                            <Link
+                                                href={`/components/${item.id}`}
+                                                className="block h-full"
+                                            >
+                                                {/* Image */}
+                                                <div className="h-48 bg-neutral-900/50 flex items-center justify-center relative group-hover:bg-neutral-900/30 transition-colors">
+                                                    {item.image &&
+                                                        item.image.startsWith(
+                                                            "http",
+                                                        ) ? (
+                                                        <img
+                                                            src={item.image}
+                                                            alt={item.name}
+                                                            className="h-full w-full object-contain p-4 mix-blend-screen"
+                                                        />
+                                                    ) : (
+                                                        <span className="text-neutral-600 text-4xl font-bold opacity-20 group-hover:opacity-40 transition-opacity">
+                                                            {item.category}
                                                         </span>
-                                                        <span className="text-xl font-bold text-white">
-                                                            ৳
-                                                            {item.price.toLocaleString()}
+                                                    )}
+
+                                                    {/* Vendor Badges */}
+                                                    <div className="absolute top-4 right-4 flex gap-1">
+                                                        <span className="bg-neutral-800/80 backdrop-blur-sm text-[10px] px-2 py-1 rounded border border-neutral-700 text-neutral-300">
+                                                            In Stock
                                                         </span>
                                                     </div>
-                                                    <button className="p-2 rounded-full bg-white text-black hover:bg-[#4f9e97] hover:text-white transition-colors">
-                                                        <svg
-                                                            className="w-5 h-5"
-                                                            fill="none"
-                                                            stroke="currentColor"
-                                                            viewBox="0 0 24 24"
-                                                        >
-                                                            <path
-                                                                strokeLinecap="round"
-                                                                strokeLinejoin="round"
-                                                                strokeWidth={2}
-                                                                d="M12 4v16m8-8H4"
-                                                            />
-                                                        </svg>
-                                                    </button>
                                                 </div>
-                                            </div>
-                                        </Link>
+
+                                                {/* Content */}
+                                                <div className="p-5">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <span className="text-xs text-neutral-500 font-medium uppercase tracking-wide">
+                                                            {item.brand}
+                                                        </span>
+                                                        <div className="flex items-center gap-1 text-xs text-[#FFC107]">
+                                                            <svg
+                                                                className="w-3 h-3 fill-current"
+                                                                viewBox="0 0 20 20"
+                                                            >
+                                                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                            </svg>
+                                                            {item.rating}
+                                                        </div>
+                                                    </div>
+
+                                                    <h3 className="font-bold text-lg mb-4 line-clamp-2 leading-tight group-hover:text-[#4f9e97] transition-colors">
+                                                        {item.name}
+                                                    </h3>
+
+                                                    <div className="flex items-center justify-between mt-auto">
+                                                        <div>
+                                                            <span className="text-xs text-neutral-500 block">
+                                                                Best Price
+                                                            </span>
+                                                            <span className="text-xl font-bold text-white">
+                                                                ৳
+                                                                {item.price.toLocaleString()}
+                                                            </span>
+                                                        </div>
+                                                        <button className="p-2 rounded-full bg-white text-black hover:bg-[#4f9e97] hover:text-white transition-colors">
+                                                            <svg
+                                                                className="w-5 h-5"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                viewBox="0 0 24 24"
+                                                            >
+                                                                <path
+                                                                    strokeLinecap="round"
+                                                                    strokeLinejoin="round"
+                                                                    strokeWidth={2}
+                                                                    d="M12 4v16m8-8H4"
+                                                                />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </div>
                                     </motion.div>
                                 ))}
                             </motion.div>
