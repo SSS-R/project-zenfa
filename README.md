@@ -1,5 +1,6 @@
 # PC Lagbe?
 
+
 **"Don't build a PC. Let the PC build itself."**
 
 An AI-Driven Product Aggregator & Automated PC Builder designed for the Bangladeshi market. We are building the "Skyscanner" or "Expedia" for PC hardware—empowering non-tech users to get the best machine for their money without needing deep hardware knowledge.
