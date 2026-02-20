@@ -56,13 +56,14 @@ class BaseScraper(ABC):
         pass
 
     def clean_price(self, price_str: str) -> int:
-        """Removes currency symbols and commas from price string."""
+        """Removes currency symbols and commas from price string. Prioritizes Bangladeshi Taka (৳)."""
         if not price_str:
             return 0
-        # Remove '৳', ',', and whitespace
-        clean_str = price_str.replace("৳", "").replace(",", "").strip()
+        # Remove '৳' (Bangladeshi Taka - primary currency), ',', and whitespace
+        # Also handle other symbols as fallback
+        clean_str = price_str.replace("৳", "").replace(",", "").replace("$", "").replace("Rs.", "").replace("₹", "").strip()
         try:
-            return int(clean_str)
+            return int(float(clean_str))
         except ValueError:
             logger.warning(f"Could not parse price: {price_str}")
             return 0

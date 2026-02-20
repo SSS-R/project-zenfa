@@ -73,65 +73,116 @@ class SkylandScraper(BaseScraper):
         # 2. Price
         price = 0
         
-        # Priority 0: Meta Tag (Most reliable)
-        meta_price = soup.select_one("meta[property='product:price:amount']") or soup.select_one("meta[itemprop='price']")
-        if meta_price and meta_price.get("content"):
+        # Priority 0: Try JSON-LD structured data first
+        scripts = soup.select("script[type='application/ld+json']")
+        for script in scripts:
             try:
-                price = int(float(meta_price["content"]))
-            except (ValueError, TypeError):
-                pass
+                import json
+                data = json.loads(script.text)
+                if isinstance(data, dict) and "offers" in data:
+                    offers = data["offers"]
+                    if isinstance(offers, dict) and "price" in offers:
+                        price = int(float(offers["price"]))
+                        break
+                    elif isinstance(offers, list) and offers and "price" in offers[0]:
+                        price = int(float(offers[0]["price"]))
+                        break
+            except (json.JSONDecodeError, KeyError, ValueError, TypeError):
+                continue
+        
+        # Priority 1: Meta Tag
+        if price == 0:
+            meta_price = soup.select_one("meta[property='product:price:amount']") or soup.select_one("meta[itemprop='price']")
+            if meta_price and meta_price.get("content"):
+                try:
+                    price = int(float(meta_price["content"]))
+                except (ValueError, TypeError):
+                    pass
         
         if price == 0:
-            # Scope search to the product details section to avoid sidebar/footer prices
-            # Skyland usually has a #content or .product-info block
-            product_block = soup.select_one("#content") or soup.select_one(".product-info") or soup
+            # Priority 2: Direct price selectors (most reliable)
+            price_selectors = [
+                ".price-new",
+                ".product-price", 
+                ".our-price",
+                "#product-price",
+                ".current-price",
+                ".sale-price"
+            ]
             
-            # Priority 1: Special/New Price WITHIN product block
-            price_new_tag = product_block.select_one(".price-new")
-            if price_new_tag:
-                 price = self.clean_price(price_new_tag.text)
+            for selector in price_selectors:
+                price_tag = soup.select_one(selector)
+                if price_tag:
+                    price_text = price_tag.text.strip()
+                    # Extract first price if multiple prices (e.g., "49,500৳ 59,500৳")
+                    import re
+                    price_match = re.search(r'([\d,]+)৳', price_text)
+                    if price_match:
+                        price = self.clean_price(price_match.group(1))
+                        if price > 0:
+                            break
             
-            # Priority 2: Standard/Product Price
+            # Priority 3: Generic price class (be more selective)
             if price == 0:
-                product_price_tag = product_block.select_one(".product-price")
-                if product_price_tag:
-                     price = self.clean_price(product_price_tag.text)
-
-            # Priority 3: Fallback generic price, but be careful of "price" class usage elsewhere
-            if price == 0:
-                 # Look for ul.list-unstyled.price (common Opencart theme structure)
-                 price_list = product_block.select_one("ul.list-unstyled.price")
-                 if price_list:
-                     price_item = price_list.select_one("li h2") or price_list.select_one("li")
-                     if price_item:
-                         price = self.clean_price(price_item.text)
+                product_block = soup.select_one("#content") or soup.select_one(".product-info") or soup
+                price_list = product_block.select_one("ul.list-unstyled.price")
+                if price_list:
+                    price_item = price_list.select_one("li h2") or price_list.select_one("li")
+                    if price_item:
+                        price = self.clean_price(price_item.text)
             
-            # Priority 4: Regex Search in Description (Last Resort)
+            # Priority 4: Regex Search in Full Page
             if price == 0:
-                # Search for "is X,XXX৳" pattern common in SEO text
                 import re
-                text_content = product_block.get_text(separator=" ", strip=True)
-                # Matches: "price is 8,500", "price ... is 8,500"
-                match = re.search(r"price.*?is\s*([\d,]+)\s*৳", text_content, re.IGNORECASE)
-                if match:
-                    price = self.clean_price(match.group(1))
+                # Look for price patterns in the entire HTML
+                price_patterns = re.findall(r'([\d,]+)\s*৳', html)
+                if price_patterns:
+                    # Take the first price that's reasonable (> 100)
+                    for pattern in price_patterns:
+                        potential_price = self.clean_price(pattern)
+                        if potential_price > 100:  # Filter out small numbers like "0৳"
+                            price = potential_price
+                            break
 
         # 3. Status
         status = "Unknown"
-        stock_tag = soup.select_one(".stock") or soup.select_one(".product-stock")
-        if stock_tag:
-            status = stock_tag.text.strip()
-        else:
-            # Check for 'In Stock' text anywhere in product info
-            # Limit scope to ensure we don't pick up footer/header
+        
+        # Priority 1: Check specific stock status elements
+        stock_selectors = [
+            ".out-of-stock",
+            ".in-stock", 
+            ".stock",
+            ".product-stock",
+            ".availability",
+            ".stock-status"
+        ]
+        
+        for selector in stock_selectors:
+            stock_tag = soup.select_one(selector)
+            if stock_tag:
+                status_text = stock_tag.text.strip()
+                # Clean up the status text - take only the first line or first few words
+                status = status_text.split('\n')[0].strip()
+                # If still too long, take first 20 characters
+                if len(status) > 20:
+                    status = status[:20].strip()
+                break
+        
+        # Priority 2: Look for common status keywords
+        if status == "Unknown":
             container = soup.select_one(".product-info") or soup.select_one("#content") or soup
-            if "In Stock" in container.text:
+            container_text = container.text.lower()
+            
+            if "in stock" in container_text:
                 status = "In Stock"
-            elif "Out of Stock" in container.text:
+            elif "out of stock" in container_text:
                 status = "Out of Stock"
-            # Final fallback: check whole page if not found in container
-            elif "In Stock" in soup.text:
-                status = "In Stock"
+            elif "upcoming" in container_text:
+                status = "Upcoming"
+            elif "pre-order" in container_text:
+                status = "Pre-Order"
+            elif "discontinued" in container_text:
+                status = "Discontinued"
         
         # 4. Image
         image_url = None
