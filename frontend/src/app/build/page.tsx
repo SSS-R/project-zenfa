@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
-import SpiralBackground from "@/components/SpiralBackground";
 import SplineBackground from "@/components/SplineBackground";
 
 export default function BuildPage() {
@@ -12,39 +11,67 @@ export default function BuildPage() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const [buildParts, setBuildParts] = useState<any[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
     const handleGenerate = async () => {
         setIsGenerating(true);
+        setError(null); // Clear previous errors
         try {
             // Fetch real data from backend
             const response = await fetch("http://127.0.0.1:8000/components/");
+
+            if (!response.ok) {
+                throw new Error(
+                    `HTTP ${response.status}: ${response.statusText}`,
+                );
+            }
+
             const data = await response.json();
+
+            // Handle paginated API response properly
+            if (!data.items || !Array.isArray(data.items)) {
+                console.error(
+                    "Expected paginated response with items array, got:",
+                    data,
+                );
+                setError("Invalid data format from server");
+                setIsGenerating(false);
+                return;
+            }
 
             // Allow time for animation feel + actually process data
             // Simple logic: convert backend list to frontend view format
             // For now, getting *All* components. In real app, we'd send budget/useCase to API.
 
-            const parts = data.map((comp: any) => {
-                // Find best price (lowest valid price)
-                const prices = comp.prices?.filter((p: any) => p.in_stock && p.price_bdt > 0) || [];
-                const bestPrice = prices.length > 0
-                    ? Math.min(...prices.map((p: any) => p.price_bdt))
-                    : 0;
+            const parts = data.items
+                .map((comp: any) => {
+                    // Find best price (lowest valid price)
+                    const prices =
+                        comp.prices?.filter(
+                            (p: any) => p.in_stock && p.price_bdt > 0,
+                        ) || [];
+                    const bestPrice =
+                        prices.length > 0
+                            ? Math.min(...prices.map((p: any) => p.price_bdt))
+                            : 0;
 
-                return {
-                    id: comp.id,
-                    type: comp.component_type?.toUpperCase() || "COMPONENT",
-                    name: comp.name,
-                    price: bestPrice,
-                    vendorCount: prices.length
-                };
-            }).filter((p: any) => p.price > 0); // Only show items with valid prices
+                    return {
+                        id: comp.id,
+                        type: comp.component_type?.toUpperCase() || "COMPONENT",
+                        name: comp.name,
+                        price: bestPrice,
+                        vendorCount: prices.length,
+                    };
+                })
+                .filter((p: any) => p.price > 0); // Only show items with valid prices
 
             setBuildParts(parts);
             setShowResults(true);
         } catch (error) {
             console.error("Failed to fetch components:", error);
-            alert("Failed to connect to backend. Make sure it's running!");
+            setError(
+                `Failed to connect to backend: ${error instanceof Error ? error.message : "Unknown error"}`,
+            );
         } finally {
             setIsGenerating(false);
         }
@@ -57,7 +84,6 @@ export default function BuildPage() {
 
             {/* Navbar is global in layout, but we might need to handle spacing if it's fixed */}
             <div className="pt-24 px-6 md:px-12 max-w-7xl mx-auto relative z-10">
-
                 {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -65,7 +91,8 @@ export default function BuildPage() {
                     className="mb-12 text-center"
                 >
                     <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                        Build Your <span className="text-gradient-primary">Dream PC</span>
+                        Build Your{" "}
+                        <span className="text-gradient-primary">Dream PC</span>
                     </h1>
                     <p className="text-neutral-400">
                         Define your budget and needs. AI will handle the rest.
@@ -83,14 +110,20 @@ export default function BuildPage() {
                         {/* Budget Slider */}
                         <div>
                             <div className="flex justify-between mb-4">
-                                <label className="font-semibold text-lg">Budget</label>
-                                <span className="text-[#4f9e97] font-bold text-xl">৳ {budget.toLocaleString()}</span>
+                                <label className="font-semibold text-lg">
+                                    Budget
+                                </label>
+                                <span className="text-[#4f9e97] font-bold text-xl">
+                                    ৳ {budget.toLocaleString()}
+                                </span>
                             </div>
 
                             <div className="relative h-2 bg-neutral-800 rounded-full">
                                 <div
                                     className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#4f9e97] to-[#6ee1c9] rounded-full"
-                                    style={{ width: `${(budget / 500000) * 100}%` }}
+                                    style={{
+                                        width: `${(budget / 500000) * 100}%`,
+                                    }}
                                 />
                                 <input
                                     type="range"
@@ -98,7 +131,9 @@ export default function BuildPage() {
                                     max="500000"
                                     step="1000"
                                     value={budget}
-                                    onChange={(e) => setBudget(Number(e.target.value))}
+                                    onChange={(e) =>
+                                        setBudget(Number(e.target.value))
+                                    }
                                     className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
                                 />
                                 {/* Thumb (Visual only, aligned with internal logic would be complex manually, browser default usually fine if styled, but here we cover it) */}
@@ -111,22 +146,39 @@ export default function BuildPage() {
 
                         {/* Use Case Selection */}
                         <div>
-                            <label className="font-semibold text-lg block mb-4">Primary Use</label>
+                            <label className="font-semibold text-lg block mb-4">
+                                Primary Use
+                            </label>
                             <div className="grid grid-cols-2 gap-4">
-                                {['gaming', 'workstation', 'editing', 'office'].map((type) => (
+                                {[
+                                    "gaming",
+                                    "workstation",
+                                    "editing",
+                                    "office",
+                                ].map((type) => (
                                     <button
                                         key={type}
                                         onClick={() => setUseCase(type)}
-                                        className={`p-4 rounded-xl border transition-all ${useCase === type
-                                            ? 'border-[#4f9e97] bg-[#4f9e97]/10 text-white'
-                                            : 'border-neutral-800 bg-neutral-900/50 text-neutral-400 hover:border-neutral-600'
-                                            }`}
+                                        className={`p-4 rounded-xl border transition-all ${
+                                            useCase === type
+                                                ? "border-[#4f9e97] bg-[#4f9e97]/10 text-white"
+                                                : "border-neutral-800 bg-neutral-900/50 text-neutral-400 hover:border-neutral-600"
+                                        }`}
                                     >
-                                        <span className="capitalize font-medium">{type}</span>
+                                        <span className="capitalize font-medium">
+                                            {type}
+                                        </span>
                                     </button>
                                 ))}
                             </div>
                         </div>
+
+                        {/* Error Display */}
+                        {error && (
+                            <div className="p-4 bg-red-900/20 border border-red-500/30 rounded-lg text-red-200">
+                                <p className="text-sm">⚠️ {error}</p>
+                            </div>
+                        )}
 
                         {/* Generate Button */}
                         <button
@@ -160,13 +212,27 @@ export default function BuildPage() {
                                     className="absolute inset-0 flex flex-col items-center justify-center text-center p-8 border border-neutral-800 border-dashed rounded-2xl bg-neutral-900/20"
                                 >
                                     <div className="w-20 h-20 bg-neutral-800 rounded-full flex items-center justify-center mb-6 text-neutral-600">
-                                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                                        <svg
+                                            className="w-10 h-10"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                strokeLinecap="round"
+                                                strokeLinejoin="round"
+                                                strokeWidth={1.5}
+                                                d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"
+                                            />
                                         </svg>
                                     </div>
-                                    <h3 className="text-xl font-semibold text-neutral-300">Ready to Architect</h3>
+                                    <h3 className="text-xl font-semibold text-neutral-300">
+                                        Ready to Architect
+                                    </h3>
                                     <p className="text-neutral-500 mt-2 max-w-sm">
-                                        Configure your preferences on the left to generate a tailored PC build list instantly.
+                                        Configure your preferences on the left
+                                        to generate a tailored PC build list
+                                        instantly.
                                     </p>
                                 </motion.div>
                             ) : (
@@ -178,12 +244,20 @@ export default function BuildPage() {
                                 >
                                     <div className="flex justify-between items-center mb-6 pb-6 border-b border-neutral-800">
                                         <div>
-                                            <h2 className="text-xl font-bold">Recommended Build</h2>
-                                            <p className="text-neutral-400 text-sm">Optimized for {useCase}</p>
+                                            <h2 className="text-xl font-bold">
+                                                Recommended Build
+                                            </h2>
+                                            <p className="text-neutral-400 text-sm">
+                                                Optimized for {useCase}
+                                            </p>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-2xl font-bold text-[#4f9e97]">৳ {budget}</div>
-                                            <div className="text-xs text-neutral-500">Total Estimate</div>
+                                            <div className="text-2xl font-bold text-[#4f9e97]">
+                                                ৳ {budget}
+                                            </div>
+                                            <div className="text-xs text-neutral-500">
+                                                Total Estimate
+                                            </div>
                                         </div>
                                     </div>
 
@@ -199,8 +273,10 @@ export default function BuildPage() {
                                             ))
                                         ) : (
                                             <div className="text-center text-neutral-500 py-10">
-                                                No components found in database.<br />
-                                                (Run the seed script in backend!)
+                                                No components found in database.
+                                                <br />
+                                                (Run the seed script in
+                                                backend!)
                                             </div>
                                         )}
                                     </div>
@@ -218,7 +294,15 @@ export default function BuildPage() {
     );
 }
 
-function BuildPart({ type, name, price }: { type: string, name: string, price: number }) {
+function BuildPart({
+    type,
+    name,
+    price,
+}: {
+    type: string;
+    name: string;
+    price: number;
+}) {
     return (
         <div className="flex items-center p-3 rounded-lg hover:bg-white/5 transition-colors group">
             <div className="w-10 h-10 rounded-md bg-neutral-800 flex items-center justify-center text-xs font-bold text-neutral-500 mr-4 group-hover:bg-[#4f9e97]/20 group-hover:text-[#4f9e97] transition-colors">
@@ -226,7 +310,9 @@ function BuildPart({ type, name, price }: { type: string, name: string, price: n
             </div>
             <div className="flex-1">
                 <div className="text-xs text-neutral-500 mb-0.5">{type}</div>
-                <div className="font-medium text-sm text-neutral-200">{name}</div>
+                <div className="font-medium text-sm text-neutral-200">
+                    {name}
+                </div>
             </div>
             <div className="font-mono text-sm text-neutral-400">
                 ৳{price.toLocaleString()}
