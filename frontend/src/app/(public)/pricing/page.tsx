@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
 
 export default function PricingPage() {
     return (
@@ -15,75 +16,84 @@ export default function PricingPage() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto text-left">
 
                     {/* Starter Pack */}
-                    <div className="glass-card p-8 rounded-2xl flex flex-col border border-neutral-800 hover:border-[#4f9e97]/30 transition-colors">
-                        <h3 className="text-2xl font-bold mb-2">Starter Pack</h3>
-                        <p className="text-neutral-400 text-sm mb-6">Perfect for standard builders.</p>
-                        <div className="text-4xl font-extrabold mb-2 text-white">৳ 50</div>
-                        <div className="text-[#4f9e97] font-bold mb-8">30 Tokens (3 Builds)</div>
-                        <ul className="space-y-4 mb-8 flex-1">
-                            <li className="flex items-center text-sm text-neutral-300">
-                                <svg className="w-5 h-5 text-[#4f9e97] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                3 Full AI Build Generations
-                            </li>
-                            <li className="flex items-center text-sm text-neutral-300">
-                                <svg className="w-5 h-5 text-[#4f9e97] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                3 Free Tweaks Per Session
-                            </li>
-                            <li className="flex items-center text-sm text-neutral-300">
-                                <svg className="w-5 h-5 text-[#4f9e97] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                Save Builds to Profile
-                            </li>
-                        </ul>
-                        <button className="w-full py-3 rounded-xl font-bold bg-neutral-800 hover:bg-neutral-700 text-white transition-colors border border-neutral-700">Buy Package</button>
+                    <div className="relative w-full rounded-[1.75rem] border border-neutral-800/50 p-1 md:p-2 group transition-transform duration-300 hover:-translate-y-1">
+                        <GlowingEffect blur={0} borderWidth={3} spread={40} glow={true} disabled={false} proximity={64} inactiveZone={0.01} />
+                        <div className="relative flex flex-col h-full bg-neutral-950/80 backdrop-blur-xl border border-neutral-800/50 rounded-[1.25rem] p-8 shadow-2xl overflow-hidden z-10 transition-colors group-hover:border-[#4f9e97]/50">
+                            <h3 className="text-2xl font-bold mb-2">Starter Pack</h3>
+                            <p className="text-neutral-400 text-sm mb-6">Perfect for standard builders.</p>
+                            <div className="text-4xl font-extrabold mb-2 text-white">৳ 50</div>
+                            <div className="text-[#4f9e97] font-bold mb-8">30 Tokens (3 Builds)</div>
+                            <ul className="space-y-4 mb-8 flex-1">
+                                <li className="flex items-center text-sm text-neutral-300">
+                                    <svg className="w-5 h-5 text-[#4f9e97] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    3 Full AI Build Generations
+                                </li>
+                                <li className="flex items-center text-sm text-neutral-300">
+                                    <svg className="w-5 h-5 text-[#4f9e97] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    3 Free Tweaks Per Session
+                                </li>
+                                <li className="flex items-center text-sm text-neutral-300">
+                                    <svg className="w-5 h-5 text-[#4f9e97] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    Save Builds to Profile
+                                </li>
+                            </ul>
+                            <button className="w-full py-3 rounded-xl font-bold bg-neutral-800 hover:bg-neutral-700 text-white transition-colors border border-neutral-700">Buy Package</button>
+                        </div>
                     </div>
 
                     {/* Pro Pack (Highlighted) */}
-                    <div className="glass-card-glow p-8 rounded-2xl flex flex-col border border-[#4f9e97]/50 relative scale-105 shadow-2xl shadow-[#4f9e97]/10">
-                        <div className="absolute top-0 right-8 -translate-y-1/2 bg-[#4f9e97] text-black text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full">
+                    <div className="relative w-full rounded-[1.75rem] border border-[#4f9e97]/50 p-1 md:p-2 group transition-transform duration-300 scale-105 hover:-translate-y-1 shadow-2xl shadow-[#4f9e97]/10">
+                        <GlowingEffect blur={0} borderWidth={3} spread={40} glow={true} disabled={false} proximity={64} inactiveZone={0.01} />
+                        <div className="absolute top-0 right-4 lg:right-8 -translate-y-1/2 bg-[#4f9e97] text-black text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full z-20">
                             Most Popular
                         </div>
-                        <h3 className="text-2xl font-bold mb-2 text-white">Pro Pack</h3>
-                        <p className="text-neutral-400 text-sm mb-6">For enthusiasts and heavy testing.</p>
-                        <div className="text-4xl font-extrabold mb-2 text-white">৳ 100</div>
-                        <div className="text-[#4f9e97] font-bold mb-8">70 Tokens (7 Builds)</div>
-                        <ul className="space-y-4 mb-8 flex-1">
-                            <li className="flex items-center text-sm text-neutral-300">
-                                <svg className="w-5 h-5 text-[#4f9e97] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                7 Full AI Build Generations
-                            </li>
-                            <li className="flex items-center text-sm text-neutral-300">
-                                <svg className="w-5 h-5 text-[#4f9e97] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                15 Free Tweaks Per Session
-                            </li>
-                            <li className="flex items-center text-sm text-neutral-300">
-                                <svg className="w-5 h-5 text-[#4f9e97] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                Detailed AI Reasoning Logs
-                            </li>
-                        </ul>
-                        <button className="w-full py-3 rounded-xl font-bold btn-primary text-white shadow-lg shadow-[#4f9e97]/30 border border-[#4f9e97]">Buy Package</button>
+                        <div className="relative flex flex-col h-full bg-neutral-950/80 backdrop-blur-xl border border-neutral-800/50 rounded-[1.25rem] p-8 overflow-hidden z-10 transition-colors group-hover:border-[#4f9e97]/50">
+                            <h3 className="text-2xl font-bold mb-2 text-white">Pro Pack</h3>
+                            <p className="text-neutral-400 text-sm mb-6">For enthusiasts and heavy testing.</p>
+                            <div className="text-4xl font-extrabold mb-2 text-white">৳ 100</div>
+                            <div className="text-[#4f9e97] font-bold mb-8">70 Tokens (7 Builds)</div>
+                            <ul className="space-y-4 mb-8 flex-1">
+                                <li className="flex items-center text-sm text-neutral-300">
+                                    <svg className="w-5 h-5 text-[#4f9e97] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    7 Full AI Build Generations
+                                </li>
+                                <li className="flex items-center text-sm text-neutral-300">
+                                    <svg className="w-5 h-5 text-[#4f9e97] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    15 Free Tweaks Per Session
+                                </li>
+                                <li className="flex items-center text-sm text-neutral-300">
+                                    <svg className="w-5 h-5 text-[#4f9e97] mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    Detailed AI Reasoning Logs
+                                </li>
+                            </ul>
+                            <button className="w-full py-3 rounded-xl font-bold btn-primary text-white shadow-lg shadow-[#4f9e97]/30 border border-[#4f9e97]">Buy Package</button>
+                        </div>
                     </div>
 
                     {/* Enthusiast Pack */}
-                    <div className="glass-card p-8 rounded-2xl flex flex-col border border-neutral-800 hover:border-[#4f9e97]/30 transition-colors">
-                        <h3 className="text-2xl font-bold mb-2">Enthusiast Pack</h3>
-                        <p className="text-neutral-400 text-sm mb-6">The ultimate builder's toolkit.</p>
-                        <div className="text-4xl font-extrabold mb-2 text-white">৳ 350</div>
-                        <div className="text-purple-400 font-bold mb-8">300 Tokens (30 Builds)</div>
-                        <ul className="space-y-4 mb-8 flex-1">
-                            <li className="flex items-center text-sm text-neutral-300">
-                                <svg className="w-5 h-5 text-purple-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                30 Full AI Build Generations
-                            </li>
-                            <li className="flex items-center text-sm text-white font-medium">
-                                <svg className="w-5 h-5 text-purple-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                Unlimited Free Tweaks
-                            </li>
-                            <li className="flex items-center text-sm text-neutral-300">
-                                <svg className="w-5 h-5 text-purple-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
-                                Priority Support Line
-                            </li>
-                        </ul>
-                        <button className="w-full py-3 rounded-xl font-bold bg-neutral-800 hover:bg-neutral-700 text-white transition-colors border border-neutral-700">Buy Package</button>
+                    <div className="relative w-full rounded-[1.75rem] border border-neutral-800/50 p-1 md:p-2 group transition-transform duration-300 hover:-translate-y-1">
+                        <GlowingEffect blur={0} borderWidth={3} spread={40} glow={true} disabled={false} proximity={64} inactiveZone={0.01} />
+                        <div className="relative flex flex-col h-full bg-neutral-950/80 backdrop-blur-xl border border-neutral-800/50 rounded-[1.25rem] p-8 shadow-2xl overflow-hidden z-10 transition-colors group-hover:border-[#4f9e97]/50">
+                            <h3 className="text-2xl font-bold mb-2">Enthusiast Pack</h3>
+                            <p className="text-neutral-400 text-sm mb-6">The ultimate builder's toolkit.</p>
+                            <div className="text-4xl font-extrabold mb-2 text-white">৳ 350</div>
+                            <div className="text-purple-400 font-bold mb-8">300 Tokens (30 Builds)</div>
+                            <ul className="space-y-4 mb-8 flex-1">
+                                <li className="flex items-center text-sm text-neutral-300">
+                                    <svg className="w-5 h-5 text-purple-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    30 Full AI Build Generations
+                                </li>
+                                <li className="flex items-center text-sm text-white font-medium">
+                                    <svg className="w-5 h-5 text-purple-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    Unlimited Free Tweaks
+                                </li>
+                                <li className="flex items-center text-sm text-neutral-300">
+                                    <svg className="w-5 h-5 text-purple-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                    Priority Support Line
+                                </li>
+                            </ul>
+                            <button className="w-full py-3 rounded-xl font-bold bg-neutral-800 hover:bg-neutral-700 text-white transition-colors border border-neutral-700">Buy Package</button>
+                        </div>
                     </div>
 
                 </div>

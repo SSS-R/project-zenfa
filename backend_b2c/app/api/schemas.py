@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from uuid import UUID
 
 class UserCreate(BaseModel):
     email: EmailStr
@@ -15,7 +16,7 @@ class Token(BaseModel):
     token_type: str
 
 class UserResponse(BaseModel):
-    id: str
+    id: UUID
     email: str
     display_name: Optional[str] = None
     role: str
@@ -23,3 +24,4 @@ class UserResponse(BaseModel):
     
     class Config:
         from_attributes = True
+

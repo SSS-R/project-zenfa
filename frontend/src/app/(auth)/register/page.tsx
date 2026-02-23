@@ -59,7 +59,7 @@ export default function RegisterPage() {
 
     return (
         <div className="min-h-screen bg-black flex items-center justify-center pt-24 pb-12 px-4">
-            <div className="relative w-full max-w-md rounded-[1.75rem] border border-neutral-800/50 p-2 group">
+            <div className="relative w-full max-w-md rounded-[1.75rem] border border-neutral-800/50 p-1 md:p-2 group transition-transform duration-300 hover:-translate-y-1">
                 <GlowingEffect
                     blur={0}
                     borderWidth={3}
@@ -69,7 +69,7 @@ export default function RegisterPage() {
                     proximity={64}
                     inactiveZone={0.01}
                 />
-                <div className="relative flex flex-col w-full bg-neutral-900 border border-neutral-800 rounded-[1.5rem] p-8 shadow-2xl overflow-hidden z-10">
+                <div className="relative flex flex-col w-full h-full bg-neutral-950/80 backdrop-blur-xl border border-neutral-800/50 rounded-[1.25rem] p-8 shadow-2xl overflow-hidden z-10 transition-colors group-hover:border-[#4f9e97]/50">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[#4f9e97]/10 blur-3xl rounded-full pointer-events-none"></div>
 
                     <div className="text-center mb-8 relative z-10">

@@ -51,3 +51,4 @@ env/
 
 # dumps
 .database
+b2c_logs.txt
