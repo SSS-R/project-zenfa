@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-
+import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
 
 export function Navbar() {
     const pathname = usePathname();
+    const { data: session, status } = useSession();
     const isHome = pathname === "/";
     const isComponents = pathname === "/components";
 
@@ -31,12 +32,30 @@ export function Navbar() {
                     <NavLink href="/components" label="Components" active={pathname === "/components"} />
                 </div>
 
-                <Link
-                    href="/build"
-                    className="px-5 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-medium hover:bg-white/10 hover:border-[#4f9e97]/50 transition-all duration-300"
-                >
-                    Get Started
-                </Link>
+                <div className="flex items-center gap-4">
+                    {status === "loading" ? (
+                        <div className="w-10 h-4 bg-white/10 animate-pulse rounded"></div>
+                    ) : session ? (
+                        <>
+                            <Link href="/dashboard" className="text-sm font-medium text-neutral-400 hover:text-white transition-colors hidden sm:block">
+                                Dashboard
+                            </Link>
+                            <button onClick={() => signOut()} className="text-sm font-medium text-neutral-400 hover:text-red-400 transition-colors hidden sm:block">
+                                Logout
+                            </button>
+                        </>
+                    ) : (
+                        <Link href="/login" className="text-sm font-medium text-neutral-400 hover:text-white transition-colors hidden sm:block">
+                            Login
+                        </Link>
+                    )}
+                    <Link
+                        href="/build"
+                        className="px-5 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-medium hover:bg-white/10 hover:border-[#4f9e97]/50 transition-all duration-300"
+                    >
+                        Get Started
+                    </Link>
+                </div>
             </div>
         </nav>
     );
