@@ -54,6 +54,27 @@ services:
       - ./backend:/app
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
+  # B2C FastAPI Backend (PC Lagbe? Portal)
+  backend_b2c:
+    build:
+      context: ./backend_b2c
+      dockerfile: Dockerfile
+    container_name: zenfa_backend_b2c
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: ${B2C_DATABASE_URL}
+      REDIS_URL: ${B2C_REDIS_URL}
+      SECRET_KEY: ${B2C_SECRET_KEY}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./backend_b2c:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload
+
 volumes:
   postgres_data:
   redis_data:
