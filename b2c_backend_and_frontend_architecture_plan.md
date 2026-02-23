@@ -38,8 +38,8 @@ The Zenfa AI engine is **stateless** — all user state, payments, sessions, adm
 
 | Phase | What | Status |
 |-------|------|--------|
-| **1 — Core**    | DB schema + Auth + Guest mode + Builder UI + AI result | ✅ Done |
-| **2 — Money**   | Token packs + Deduction logic + Manual TrxID | ⭕ Pending |
+| **1 — Core**    | DB schema + Auth + Guest mode + Builder UI + AI result | 🔄 In Progress (DB, Auth Done) |
+| **2 — Money**   | Token packs + Deduction logic + Manual TrxID | 🔄 In Progress (API, Checkout Done) |
 | **3 — Polish**  | Component swap modal + Budget warning + Build sharing | ⭕ Pending |
 | **4 — Support** | Helpline tickets + Live chat + Admin panel | ⭕ Pending |
 | **5 — Growth**  | PDF export + Social share image + Gamification | ⭕ Pending |

@@ -1,9 +1,13 @@
 import Link from "next/link";
+import { ShadowOverlay } from "@/components/ui/shadow-overlay";
 
 export default function DashboardPage() {
     return (
-        <div className="min-h-screen bg-black text-white pt-24 pb-12 px-4">
-            <div className="max-w-6xl mx-auto">
+        <div className="min-h-screen bg-black text-white pt-24 pb-12 px-4 relative">
+            <div className="fixed inset-0 z-0 pointer-events-none">
+                <ShadowOverlay />
+            </div>
+            <div className="max-w-6xl mx-auto relative z-10">
                 <div className="flex items-center justify-between mb-8">
                     <h1 className="text-3xl font-bold">My Dashboard</h1>
                     <Link href="/build" className="btn-primary px-6 py-2 text-sm rounded-xl">New Build</Link>

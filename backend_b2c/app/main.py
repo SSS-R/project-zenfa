@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
     # Shutdown: Cleanup resources
 
 
-from .api import auth
+from .api import auth, payments
 
 app = FastAPI(
     title=settings.api_title,
@@ -42,6 +42,7 @@ app.add_middleware(
 
 # Includes
 app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
+app.include_router(payments.router, prefix="/payments", tags=["Payments"])
 
 
 @app.get("/")

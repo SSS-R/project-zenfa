@@ -1,7 +1,22 @@
+"use client";
+
 import Link from "next/link";
+import { useState } from "react";
 import { GlowingEffect } from "@/components/ui/glowing-effect";
+import { CheckoutModal } from "@/components/CheckoutModal";
 
 export default function PricingPage() {
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedPackage, setSelectedPackage] = useState<{
+        name: 'starter' | 'pro' | 'enthusiast';
+        price: number;
+        tokens: string;
+    } | null>(null);
+
+    const handleBuyClick = (name: 'starter' | 'pro' | 'enthusiast', price: number, tokens: string) => {
+        setSelectedPackage({ name, price, tokens });
+        setIsModalOpen(true);
+    };
     return (
         <div className="min-h-screen bg-black text-white pt-32 pb-24 px-4 relative overflow-hidden">
             {/* Background Glow */}
@@ -37,7 +52,12 @@ export default function PricingPage() {
                                     Save Builds to Profile
                                 </li>
                             </ul>
-                            <button className="w-full py-3 rounded-xl font-bold bg-neutral-800 hover:bg-neutral-700 text-white transition-colors border border-neutral-700">Buy Package</button>
+                            <button
+                                onClick={() => handleBuyClick('starter', 50, '30 Tokens')}
+                                className="w-full py-3 rounded-xl font-bold bg-neutral-800 hover:bg-neutral-700 text-white transition-colors border border-neutral-700"
+                            >
+                                Buy Package
+                            </button>
                         </div>
                     </div>
 
@@ -66,7 +86,12 @@ export default function PricingPage() {
                                     Detailed AI Reasoning Logs
                                 </li>
                             </ul>
-                            <button className="w-full py-3 rounded-xl font-bold btn-primary text-white shadow-lg shadow-[#4f9e97]/30 border border-[#4f9e97]">Buy Package</button>
+                            <button
+                                onClick={() => handleBuyClick('pro', 100, '70 Tokens')}
+                                className="w-full py-3 rounded-xl font-bold btn-primary text-white shadow-lg shadow-[#4f9e97]/30 border border-[#4f9e97]"
+                            >
+                                Buy Package
+                            </button>
                         </div>
                     </div>
 
@@ -92,7 +117,12 @@ export default function PricingPage() {
                                     Priority Support Line
                                 </li>
                             </ul>
-                            <button className="w-full py-3 rounded-xl font-bold bg-neutral-800 hover:bg-neutral-700 text-white transition-colors border border-neutral-700">Buy Package</button>
+                            <button
+                                onClick={() => handleBuyClick('enthusiast', 350, '300 Tokens')}
+                                className="w-full py-3 rounded-xl font-bold bg-neutral-800 hover:bg-neutral-700 text-white transition-colors border border-neutral-700"
+                            >
+                                Buy Package
+                            </button>
                         </div>
                     </div>
 
@@ -103,6 +133,16 @@ export default function PricingPage() {
                     <p>Tokens are credited as soon as your TrxID is verified by an admin.</p>
                 </div>
             </div>
+
+            {selectedPackage && (
+                <CheckoutModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    packageName={selectedPackage.name}
+                    priceBdt={selectedPackage.price}
+                    tokensText={selectedPackage.tokens}
+                />
+            )}
         </div>
     );
 }
