@@ -3,7 +3,7 @@
 import { useState, useEffect, use } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import AnimatedShaderBackground from "@/components/ui/animated-shader-background";
+import { ShadowOverlay } from "@/components/ui/shadow-overlay";
 
 // Mock Data
 const MOCK_COMPONENTS = [
@@ -153,7 +153,9 @@ export default function ProductDetailsPage({ params }: { params: Promise<{ id: s
 
     return (
         <main className="min-h-screen bg-transparent text-white pt-24 px-6 md:px-12 max-w-[1400px] mx-auto pb-20 relative">
-            <AnimatedShaderBackground />
+            <div className="fixed inset-0 z-[-1] pointer-events-none">
+                <ShadowOverlay />
+            </div>
             {/* Breadcrumb */}
             <div className="flex items-center gap-2 text-sm text-neutral-500 mb-8">
                 <Link href="/components" className="hover:text-white transition-colors">Components</Link>
