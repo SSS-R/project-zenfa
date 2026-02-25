@@ -1,7 +1,31 @@
+"use client";
+
+import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ShadowOverlay } from "@/components/ui/shadow-overlay";
 
 export default function DashboardPage() {
+    const { data: session } = useSession();
+    const [ticketCount, setTicketCount] = useState(0);
+
+    useEffect(() => {
+        const fetchTickets = async () => {
+            if (!session?.accessToken) return;
+            try {
+                const res = await fetch("http://localhost:8001/support/tickets", {
+                    headers: { 'Authorization': `Bearer ${session.accessToken}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setTicketCount(data.length);
+                }
+            } catch (e) {
+                console.error("Failed to fetch tickets", e);
+            }
+        };
+        fetchTickets();
+    }, [session]);
     return (
         <div className="min-h-screen bg-black text-white pt-24 pb-12 px-4 relative">
             <div className="fixed inset-0 z-0 pointer-events-none">
@@ -18,10 +42,15 @@ export default function DashboardPage() {
                     <div className="glass-card-glow p-6 md:col-span-2 flex flex-col justify-center">
                         <h2 className="text-neutral-400 text-sm uppercase tracking-wider font-semibold mb-2">Current Balance</h2>
                         <div className="flex items-end gap-3 mb-4">
-                            <span className="text-5xl font-extrabold text-[#4f9e97]">10</span>
+                            <span className="text-5xl font-extrabold text-[#4f9e97]">
+                                {/* Assuming NextAuth session has token_balance, else fallback to 10 for guest/UI */}
+                                {(session?.user as any)?.token_balance || 10}
+                            </span>
                             <span className="text-xl text-neutral-500 font-medium pb-1">Tokens</span>
                         </div>
-                        <p className="text-sm text-neutral-400 mb-6">You have enough tokens for <strong className="text-white">1 Full AI Build</strong>.</p>
+                        <p className="text-sm text-neutral-400 mb-6">You have enough tokens for <strong className="text-white">
+                            {Math.floor(((session?.user as any)?.token_balance || 10) / 10)} Full AI Builds
+                        </strong>.</p>
                         <div>
                             <Link href="/pricing" className="text-[#4f9e97] hover:text-[#6ee1c9] font-medium border border-[#4f9e97]/30 bg-[#4f9e97]/10 rounded-lg px-4 py-2 transition text-sm">
                                 Get More Tokens
@@ -37,10 +66,14 @@ export default function DashboardPage() {
                                 <div className="text-2xl font-bold text-white">0</div>
                                 <div className="text-xs text-neutral-500">Saved Builds</div>
                             </div>
-                            <div>
-                                <div className="text-2xl font-bold text-white">0</div>
-                                <div className="text-xs text-neutral-500">Support Tickets</div>
-                            </div>
+                            <Link href="/support" className="block group">
+                                <div className="text-2xl font-bold text-white group-hover:text-[#4f9e97] transition-colors">
+                                    {ticketCount}
+                                </div>
+                                <div className="text-xs text-neutral-500 group-hover:text-[#4f9e97] transition-colors">
+                                    Support Tickets &rarr;
+                                </div>
+                            </Link>
                         </div>
                     </div>
                 </div>
