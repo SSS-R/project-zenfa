@@ -1,5 +1,8 @@
 import enum
 import uuid
+import string
+import random
+from datetime import datetime
 from datetime import datetime
 from typing import Optional, List
 from pydantic import EmailStr
@@ -17,6 +20,11 @@ class UserBase(SQLModel):
     display_name: Optional[str] = None
     phone: Optional[str] = None
     token_balance: int = Field(default=0)
+
+    # Gamification / Referrals
+    referral_code: str = Field(default_factory=lambda: ''.join(random.choices(string.ascii_uppercase + string.digits, k=8)), unique=True, index=True)
+    referred_by: Optional[uuid.UUID] = Field(default=None, foreign_key="users.id")
+    total_referrals: int = Field(default=0)
 
 class User(UserBase, table=True):
     __tablename__ = "users"

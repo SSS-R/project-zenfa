@@ -9,11 +9,15 @@ declare module "next-auth" {
             email?: string | null;
             image?: string | null;
             role?: string;
+            token_balance?: number;
+            referral_code?: string;
         }
     }
     interface User {
         accessToken?: string;
         role?: string;
+        token_balance?: number;
+        referral_code?: string;
     }
 }
 
@@ -43,25 +47,27 @@ export const authOptions: NextAuthOptions = {
                     const data = await res.json();
 
                     if (res.ok && data.access_token) {
-                        // Decode JWT to extract role
-                        let role = "user";
                         try {
-                            const payloadBase64 = data.access_token.split('.')[1];
-                            const payloadBuffer = Buffer.from(payloadBase64, 'base64');
-                            const payload = JSON.parse(payloadBuffer.toString());
-                            if (payload.role) {
-                                role = payload.role;
+                            const profileRes = await fetch("http://127.0.0.1:8001/auth/me", {
+                                headers: { Authorization: `Bearer ${data.access_token}` },
+                                // Do not cache this, to ensure accurate token balance
+                                cache: 'no-store'
+                            });
+
+                            if (profileRes.ok) {
+                                const profile = await profileRes.json();
+                                return {
+                                    id: data.access_token, // We'll store token as ID for now
+                                    email: credentials.email,
+                                    accessToken: data.access_token,
+                                    role: profile.role,
+                                    token_balance: profile.token_balance,
+                                    referral_code: profile.referral_code
+                                };
                             }
                         } catch (e) {
-                            console.error("Failed to decode token", e);
+                            console.error("Failed to fetch profile", e);
                         }
-
-                        return {
-                            id: data.access_token, // We'll store token as ID for now
-                            email: credentials.email,
-                            accessToken: data.access_token,
-                            role: role
-                        };
                     }
                     return null;
                 } catch (error) {
@@ -76,12 +82,22 @@ export const authOptions: NextAuthOptions = {
         maxAge: 30 * 24 * 60 * 60, // 30 days
     },
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user, trigger, session }) {
             if (user) {
                 token.accessToken = user.accessToken;
                 // @ts-ignore
                 token.role = user.role;
+                // @ts-ignore
+                token.token_balance = user.token_balance;
+                // @ts-ignore
+                token.referral_code = user.referral_code;
             }
+
+            // Allow manual session updates from frontend
+            if (trigger === "update" && session?.token_balance !== undefined) {
+                token.token_balance = session.token_balance;
+            }
+
             return token;
         },
         async session({ session, token }) {
@@ -90,6 +106,10 @@ export const authOptions: NextAuthOptions = {
             if (session.user) {
                 // @ts-ignore
                 session.user.role = token.role;
+                // @ts-ignore
+                session.user.token_balance = token.token_balance;
+                // @ts-ignore
+                session.user.referral_code = token.referral_code;
             }
             return session;
         }

@@ -6,6 +6,7 @@ class UserCreate(BaseModel):
     email: EmailStr
     password: str
     display_name: Optional[str] = None
+    referral_code: Optional[str] = None
 
 class UserLogin(BaseModel):
     email: EmailStr
@@ -21,6 +22,8 @@ class UserResponse(BaseModel):
     display_name: Optional[str] = None
     role: str
     token_balance: int
+    referral_code: str
+    total_referrals: int
     
     class Config:
         from_attributes = True

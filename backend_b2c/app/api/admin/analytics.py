@@ -30,9 +30,18 @@ def get_analytics_dashboard(db: Session = Depends(get_session)):
     open_tickets_stmt = select(func.count(SupportTicket.id)).where(SupportTicket.status.in_([TicketStatusEnum.OPEN, TicketStatusEnum.IN_PROGRESS]))
     open_tickets = db.exec(open_tickets_stmt).one()
     
+    # 5. Top Referrers
+    referrers_stmt = select(User).where(User.total_referrals > 0).order_by(User.total_referrals.desc()).limit(5)
+    top_referrers = db.exec(referrers_stmt).all()
+    top_referrers_data = [
+        {"email": u.email, "display_name": u.display_name, "total_referrals": u.total_referrals, "id": str(u.id)}
+        for u in top_referrers
+    ]
+
     return {
         "total_users": total_users,
         "total_revenue_bdt": float(total_revenue),
         "pending_manual_transactions": pending_manual_transactions,
-        "open_support_tickets": open_tickets
+        "open_support_tickets": open_tickets,
+        "top_referrers": top_referrers_data
     }
