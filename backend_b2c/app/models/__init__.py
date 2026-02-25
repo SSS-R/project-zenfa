@@ -3,6 +3,7 @@ from .session import Session, SessionStatusEnum
 from .build import Build
 from .transaction import Transaction, GatewayEnum, PackageEnum, TransactionStatusEnum
 from .support import SupportTicket, SupportMessage, TicketCategoryEnum, TicketStatusEnum, TicketPriorityEnum
+from .announcement import Announcement
 
 __all__ = [
     "User",
@@ -19,4 +20,5 @@ __all__ = [
     "TicketCategoryEnum",
     "TicketStatusEnum",
     "TicketPriorityEnum",
+    "Announcement",
 ]

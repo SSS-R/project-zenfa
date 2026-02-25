@@ -44,3 +44,38 @@ class TransactionResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+class SupportMessageCreate(BaseModel):
+    message: str
+    
+class SupportMessageResponse(BaseModel):
+    id: UUID
+    message: str
+    sender_role: str
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class SupportTicketCreate(BaseModel):
+    subject: str
+    category: str
+    priority: Optional[str] = "normal"
+
+class SupportTicketResponse(BaseModel):
+    id: UUID
+    subject: str
+    category: str
+    status: str
+    priority: str
+    created_at: datetime
+    resolved_at: Optional[datetime]
+    
+    class Config:
+        from_attributes = True
+        
+class SupportTicketDetailResponse(SupportTicketResponse):
+    messages: list[SupportMessageResponse] = []
+    
+    class Config:
+        from_attributes = True
