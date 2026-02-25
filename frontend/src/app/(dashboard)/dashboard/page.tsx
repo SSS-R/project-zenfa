@@ -4,10 +4,18 @@ import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { ShadowOverlay } from "@/components/ui/shadow-overlay";
+import { useRouter } from "next/navigation";
 
 export default function DashboardPage() {
     const { data: session } = useSession();
     const [ticketCount, setTicketCount] = useState(0);
+    const router = useRouter();
+
+    useEffect(() => {
+        if (session?.user?.role === 'admin' || session?.user?.role === 'ADMIN') {
+            router.push('/admin');
+        }
+    }, [session, router]);
 
     useEffect(() => {
         const fetchTickets = async () => {
