@@ -101,13 +101,53 @@ export default function AdminDashboardPage() {
 
             </div>
 
-            {/* Quick Actions / Getting Started */}
-            <div className="glass-card p-8 mt-12 bg-neutral-900/50">
-                <h2 className="text-xl font-bold mb-4">Admin Tasks</h2>
-                <div className="flex flex-col gap-3 text-neutral-400 text-sm">
-                    <p>• Review the <strong>Transactions</strong> tab if you have pending manual payments that need bKash TrxID verification to grant tokens.</p>
-                    <p>• Check <strong>Support Tickets</strong> to assist users who are stuck.</p>
-                    <p>• In <strong>Users & Tokens</strong>, you can manually credit or deduct tokens for specific users, or promote other members to Admin status.</p>
+            {/* Quick Actions & Referrals Split */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                {/* Getting Started / Tasks */}
+                <div className="glass-card p-8 bg-neutral-900/50">
+                    <h2 className="text-xl font-bold mb-4">Admin Tasks</h2>
+                    <div className="flex flex-col gap-3 text-neutral-400 text-sm">
+                        <p>• Review the <strong>Transactions</strong> tab if you have pending manual payments that need bKash TrxID verification to grant tokens.</p>
+                        <p>• Check <strong>Support Tickets</strong> to assist users who are stuck.</p>
+                        <p>• In <strong>Users & Tokens</strong>, you can manually credit or deduct tokens for specific users, or promote other members to Admin status.</p>
+                    </div>
+                </div>
+
+                {/* Top Referrers (Gamification) */}
+                <div className="glass-card p-8 border border-yellow-500/20 shadow-[0_0_30px_rgba(234,179,8,0.03)] bg-gradient-to-br from-yellow-500/5 to-transparent">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-bold text-yellow-500 flex items-center gap-2">
+                            <span className="bg-yellow-500/20 p-2 rounded-lg"><Users size={18} /></span>
+                            Top Referrers
+                        </h2>
+                        <span className="text-xs text-neutral-500 font-mono">MVP BOARD</span>
+                    </div>
+
+                    <div className="space-y-4">
+                        {(!stats?.top_referrers || stats.top_referrers.length === 0) ? (
+                            <p className="text-sm text-neutral-500 text-center py-4">No referrers yet.</p>
+                        ) : (
+                            stats.top_referrers.map((user: any, idx: number) => (
+                                <div key={user.id} className="flex justify-between items-center p-3 rounded-xl bg-black/40 border border-white/5 hover:bg-white/5 transition-colors">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-6 text-center font-bold ${idx === 0 ? 'text-yellow-400' : idx === 1 ? 'text-gray-300' : idx === 2 ? 'text-amber-600' : 'text-neutral-600'}`}>
+                                            #{idx + 1}
+                                        </div>
+                                        <div>
+                                            <div className="text-sm font-bold text-white">{user.display_name || 'Anonymous User'}</div>
+                                            <div className="text-xs text-neutral-500 font-mono">{user.email}</div>
+                                        </div>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-white to-neutral-400">
+                                            {user.total_referrals}
+                                        </div>
+                                        <div className="text-[10px] text-neutral-600 uppercase tracking-widest font-bold">Invites</div>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
                 </div>
             </div>
         </div>

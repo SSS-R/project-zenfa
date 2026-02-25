@@ -17,7 +17,7 @@ async def lifespan(app: FastAPI):
     # Shutdown: Cleanup resources
 
 
-from .api import auth, payments, support, announcements
+from .api import auth, payments, support, announcements, leaderboard
 from .api.admin import users as admin_users, transactions as admin_transactions, tickets as admin_tickets, analytics as admin_analytics, announcements as admin_announcements
 
 app = FastAPI(
@@ -46,6 +46,7 @@ app.include_router(auth.router, prefix="/auth", tags=["Authentication"])
 app.include_router(payments.router, prefix="/payments", tags=["Payments"])
 app.include_router(support.router, prefix="/support", tags=["Support"])
 app.include_router(announcements.router, prefix="/announcements", tags=["Announcements"])
+app.include_router(leaderboard.router, prefix="/leaderboard", tags=["Leaderboard"])
 
 # Admin Includes
 app.include_router(admin_users.router, prefix="/admin/users", tags=["Admin Users"])

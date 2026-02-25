@@ -4,6 +4,9 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "@/components/Navbar";
 import SplineBackground from "@/components/SplineBackground";
+import html2canvas from "html2canvas";
+import { jsPDF } from "jspdf";
+import { Download } from "lucide-react";
 
 export default function BuildPage() {
     const [budget, setBudget] = useState(80000); // Default BDT
@@ -74,6 +77,28 @@ export default function BuildPage() {
             );
         } finally {
             setIsGenerating(false);
+        }
+    };
+
+    const exportPDF = async () => {
+        const element = document.getElementById("build-results-container");
+        if (!element) return;
+
+        try {
+            // Slight delay or pre-processing can be added if needed
+            const canvas = await html2canvas(element, {
+                backgroundColor: "#000000",
+                scale: 2 // Better quality
+            });
+            const imgData = canvas.toDataURL("image/png");
+            const pdf = new jsPDF("p", "mm", "a4");
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+            pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`PCLagbe_Build_${useCase}.pdf`);
+        } catch (e) {
+            console.error("PDF generation failed:", e);
         }
     };
 
@@ -159,11 +184,10 @@ export default function BuildPage() {
                                     <button
                                         key={type}
                                         onClick={() => setUseCase(type)}
-                                        className={`p-4 rounded-xl border transition-all ${
-                                            useCase === type
+                                        className={`p-4 rounded-xl border transition-all ${useCase === type
                                                 ? "border-[#4f9e97] bg-[#4f9e97]/10 text-white"
                                                 : "border-neutral-800 bg-neutral-900/50 text-neutral-400 hover:border-neutral-600"
-                                        }`}
+                                            }`}
                                     >
                                         <span className="capitalize font-medium">
                                             {type}
@@ -238,6 +262,7 @@ export default function BuildPage() {
                             ) : (
                                 <motion.div
                                     key="results"
+                                    id="build-results-container"
                                     initial={{ opacity: 0, scale: 0.95 }}
                                     animate={{ opacity: 1, scale: 1 }}
                                     className="glass-card p-6 h-full flex flex-col"
@@ -281,9 +306,18 @@ export default function BuildPage() {
                                         )}
                                     </div>
 
-                                    <button className="w-full mt-6 btn-secondary py-3 text-sm">
-                                        View Retailers & Buy
-                                    </button>
+                                    <div className="mt-6 flex gap-3">
+                                        <button className="flex-1 btn-secondary py-3 text-sm">
+                                            View Retailers & Buy
+                                        </button>
+                                        <button
+                                            onClick={exportPDF}
+                                            className="px-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl flex items-center justify-center transition-colors text-white"
+                                            title="Download as PDF"
+                                        >
+                                            <Download size={20} />
+                                        </button>
+                                    </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>

@@ -59,9 +59,13 @@ export default function DashboardPage() {
                         <p className="text-sm text-neutral-400 mb-6">You have enough tokens for <strong className="text-white">
                             {Math.floor(((session?.user as any)?.token_balance || 10) / 10)} Full AI Builds
                         </strong>.</p>
-                        <div>
+                        <div className="flex flex-wrap gap-4">
                             <Link href="/pricing" className="text-[#4f9e97] hover:text-[#6ee1c9] font-medium border border-[#4f9e97]/30 bg-[#4f9e97]/10 rounded-lg px-4 py-2 transition text-sm">
                                 Get More Tokens
+                            </Link>
+                            <Link href="/dashboard/leaderboard" className="text-yellow-500 hover:text-yellow-400 font-medium border border-yellow-500/30 bg-yellow-500/10 rounded-lg px-4 py-2 transition text-sm flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
+                                View Leaderboard
                             </Link>
                         </div>
                     </div>
@@ -83,6 +87,48 @@ export default function DashboardPage() {
                                 </div>
                             </Link>
                         </div>
+                    </div>
+                </div>
+
+                {/* Referrals Section */}
+                <div className="glass-card p-8 mb-12 border border-[#4f9e97]/20 relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#4f9e97]/5 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+                    <h2 className="text-2xl font-bold mb-2 flex items-center gap-3">
+                        <span className="bg-[#4f9e97]/20 text-[#4f9e97] p-2 rounded-xl">
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm14 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                        </span>
+                        Earn Free Tokens
+                    </h2>
+                    <p className="text-neutral-400 mb-6 max-w-2xl text-sm leading-relaxed">
+                        Share your unique referral link with friends. When they sign up using your link, <strong className="text-white">you both receive 10 bonus tokens</strong> (enough for 1 Free AI Build!). Top promoters are featured on the Leaderboard.
+                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 items-center">
+                        <div className="flex-1 w-full relative">
+                            <input
+                                type="text"
+                                readOnly
+                                value={`http://localhost:3000/register?ref=${(session?.user as any)?.referral_code || 'loading...'}`}
+                                className="w-full bg-black/50 border border-neutral-700 rounded-xl px-4 py-3 text-neutral-300 font-mono text-sm focus:outline-none"
+                            />
+                        </div>
+                        <button
+                            onClick={(e) => {
+                                navigator.clipboard.writeText(`http://localhost:3000/register?ref=${(session?.user as any)?.referral_code || ''}`);
+                                const btn = e.currentTarget;
+                                const originalText = btn.innerHTML;
+                                btn.innerHTML = 'Copied!';
+                                btn.classList.add('bg-[#4f9e97]', 'text-black');
+                                btn.classList.remove('bg-white/10', 'text-white');
+                                setTimeout(() => {
+                                    btn.innerHTML = originalText;
+                                    btn.classList.remove('bg-[#4f9e97]', 'text-black');
+                                    btn.classList.add('bg-white/10', 'text-white');
+                                }, 2000);
+                            }}
+                            className="w-full sm:w-auto px-6 py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-medium transition-colors border border-white/5 flex items-center justify-center min-w-[140px]"
+                        >
+                            Copy Link
+                        </button>
                     </div>
                 </div>
 
