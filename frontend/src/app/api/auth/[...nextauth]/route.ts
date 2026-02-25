@@ -4,9 +4,16 @@ import CredentialsProvider from "next-auth/providers/credentials";
 declare module "next-auth" {
     interface Session {
         accessToken?: string;
+        user?: {
+            name?: string | null;
+            email?: string | null;
+            image?: string | null;
+            role?: string;
+        }
     }
     interface User {
         accessToken?: string;
+        role?: string;
     }
 }
 
@@ -36,12 +43,24 @@ export const authOptions: NextAuthOptions = {
                     const data = await res.json();
 
                     if (res.ok && data.access_token) {
-                        // In a real app, you would decode the JWT to get user details
-                        // For this MVP, we parse it or make a /me request
+                        // Decode JWT to extract role
+                        let role = "user";
+                        try {
+                            const payloadBase64 = data.access_token.split('.')[1];
+                            const payloadBuffer = Buffer.from(payloadBase64, 'base64');
+                            const payload = JSON.parse(payloadBuffer.toString());
+                            if (payload.role) {
+                                role = payload.role;
+                            }
+                        } catch (e) {
+                            console.error("Failed to decode token", e);
+                        }
+
                         return {
                             id: data.access_token, // We'll store token as ID for now
                             email: credentials.email,
-                            accessToken: data.access_token
+                            accessToken: data.access_token,
+                            role: role
                         };
                     }
                     return null;
@@ -60,12 +79,18 @@ export const authOptions: NextAuthOptions = {
         async jwt({ token, user }) {
             if (user) {
                 token.accessToken = user.accessToken;
+                // @ts-ignore
+                token.role = user.role;
             }
             return token;
         },
         async session({ session, token }) {
             // @ts-ignore
             session.accessToken = token.accessToken;
+            if (session.user) {
+                // @ts-ignore
+                session.user.role = token.role;
+            }
             return session;
         }
     },

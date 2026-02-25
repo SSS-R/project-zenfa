@@ -37,8 +37,8 @@ export function Navbar() {
                         <div className="w-10 h-4 bg-white/10 animate-pulse rounded"></div>
                     ) : session ? (
                         <>
-                            <Link href="/dashboard" className="text-sm font-medium text-neutral-400 hover:text-white transition-colors hidden sm:block">
-                                Dashboard
+                            <Link href={((session?.user as any)?.role === 'admin' || (session?.user as any)?.role === 'ADMIN') ? "/admin" : "/dashboard"} className="text-sm font-medium text-neutral-400 hover:text-white transition-colors hidden sm:block">
+                                {((session?.user as any)?.role === 'admin' || (session?.user as any)?.role === 'ADMIN') ? "Admin Panel" : "Dashboard"}
                             </Link>
                             <button onClick={() => signOut()} className="text-sm font-medium text-neutral-400 hover:text-red-400 transition-colors hidden sm:block">
                                 Logout
