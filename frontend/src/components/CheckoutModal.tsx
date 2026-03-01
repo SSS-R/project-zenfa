@@ -41,7 +41,7 @@ export function CheckoutModal({ isOpen, onClose, packageName, priceBdt, tokensTe
 
         try {
             // Note: Use environment variable or relative path in production
-            const res = await fetch('http://localhost:8001/payments/initiate', {
+            const res = await fetch('/api/b2c/payments/initiate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

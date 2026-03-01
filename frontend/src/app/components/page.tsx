@@ -81,9 +81,8 @@ export default function ComponentsPage() {
                 params.append("search", searchQuery.trim());
             }
 
-            const apiBase = `http://${window.location.hostname}:8000`;
             const res = await fetch(
-                `${apiBase}/components/?${params.toString()}`,
+                `/api/main/components/?${params.toString()}`,
             );
 
             if (!res.ok) {

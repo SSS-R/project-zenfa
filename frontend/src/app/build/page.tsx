@@ -21,7 +21,7 @@ export default function BuildPage() {
         setError(null); // Clear previous errors
         try {
             // Fetch real data from backend
-            const response = await fetch("http://127.0.0.1:8000/components/");
+            const response = await fetch("/api/main/components/");
 
             if (!response.ok) {
                 throw new Error(
@@ -185,8 +185,8 @@ export default function BuildPage() {
                                         key={type}
                                         onClick={() => setUseCase(type)}
                                         className={`p-4 rounded-xl border transition-all ${useCase === type
-                                                ? "border-[#4f9e97] bg-[#4f9e97]/10 text-white"
-                                                : "border-neutral-800 bg-neutral-900/50 text-neutral-400 hover:border-neutral-600"
+                                            ? "border-[#4f9e97] bg-[#4f9e97]/10 text-white"
+                                            : "border-neutral-800 bg-neutral-900/50 text-neutral-400 hover:border-neutral-600"
                                             }`}
                                     >
                                         <span className="capitalize font-medium">
