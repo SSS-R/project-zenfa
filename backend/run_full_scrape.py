@@ -15,20 +15,56 @@ from app.models.price import VendorPrice
 from datetime import datetime
 from app.models.component import Component
 
+async def get_existing_product_urls(session: Session, vendor_name: str, component_type: ComponentType) -> set:
+    """Get existing product URLs from database to avoid duplicates"""
+    try:
+        # Get all vendor prices for this vendor and component type
+        existing_prices = session.exec(
+            select(VendorPrice)
+            .join(Component)
+            .where(
+                VendorPrice.vendor_name == vendor_name,
+                Component.component_type == component_type
+            )
+        ).all()
+        
+        # Extract URLs
+        existing_urls = {price.url for price in existing_prices if price.url}
+        logger.info(f"📊 Found {len(existing_urls)} existing {vendor_name} {component_type.value} URLs in database")
+        return existing_urls
+        
+    except Exception as e:
+        logger.error(f"Error fetching existing URLs: {e}")
+        return set()
+
 # Configure Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Category Mappings - All Components
+# Category Mappings - All Components with Fallback URLs
 STARTECH_URLS = {
     ComponentType.CPU: "https://www.startech.com.bd/component/processor",
     ComponentType.GPU: "https://www.startech.com.bd/component/graphics-card", 
     ComponentType.RAM: "https://www.startech.com.bd/component/ram",
     ComponentType.MOTHERBOARD: "https://www.startech.com.bd/component/motherboard",
-    ComponentType.STORAGE: "https://www.startech.com.bd/component/ssd",
+    ComponentType.STORAGE: "https://www.startech.com.bd/ssd",  # Primary: SSD
     ComponentType.PSU: "https://www.startech.com.bd/component/power-supply",
-    ComponentType.CASE: "https://www.startech.com.bd/component/casing-pc-case",
+    ComponentType.CASE: "https://www.startech.com.bd/component/casing",  # Primary: Casing
     ComponentType.COOLER: "https://www.startech.com.bd/component/cpu-cooler",
+}
+
+# Alternative URLs for problematic categories
+STARTECH_FALLBACK_URLS = {
+    ComponentType.STORAGE: [
+        "https://www.startech.com.bd/component/hard-disk-drive",
+        "https://www.startech.com.bd/storage",
+        "https://www.startech.com.bd/component/hard-disk"
+    ],
+    ComponentType.CASE: [
+        "https://www.startech.com.bd/casing/gaming-case",
+        "https://www.startech.com.bd/casing",
+        "https://www.startech.com.bd/pc-components/casing"
+    ]
 }
 
 SKYLAND_URLS = {
@@ -36,24 +72,39 @@ SKYLAND_URLS = {
     ComponentType.GPU: "https://www.skyland.com.bd/graphics-card",
     ComponentType.RAM: "https://www.skyland.com.bd/desktop-ram", 
     ComponentType.MOTHERBOARD: "https://www.skyland.com.bd/motherboard",
-    ComponentType.STORAGE: "https://www.skyland.com.bd/ssd",
+    ComponentType.STORAGE: "https://www.skyland.com.bd/storage",  # Primary: General storage
     ComponentType.PSU: "https://www.skyland.com.bd/power-supply", 
-    ComponentType.CASE: "https://www.skyland.com.bd/computer-casing",
+    ComponentType.CASE: "https://www.skyland.com.bd/casing",  # Primary: General casing
     ComponentType.COOLER: "https://www.skyland.com.bd/cpu-cooler",
 }
 
+# Alternative URLs for Skyland problematic categories
+SKYLAND_FALLBACK_URLS = {
+    ComponentType.STORAGE: [
+        "https://www.skyland.com.bd/ssd",
+        "https://www.skyland.com.bd/hdd",
+        "https://www.skyland.com.bd/hard-disk"
+    ],
+    ComponentType.CASE: [
+        "https://www.skyland.com.bd/computer-casing",
+        "https://www.skyland.com.bd/pc-case",
+        "https://www.skyland.com.bd/case"
+    ]
+}
+
 async def process_products_concurrently(scraper, product_urls, component_type, normalization, session):
-    """Process multiple products with intelligent concurrency and rate limiting"""
-    semaphore = asyncio.Semaphore(3)  # Reduced to 3 concurrent requests for better stealth
-    batch_size = 15  # Smaller batches for better memory management
+    """Process multiple products with ENHANCED stealth protection and rate limiting"""
+    semaphore = asyncio.Semaphore(2)  # REDUCED to 2 concurrent requests for maximum stealth
+    batch_size = 8  # Much smaller batches for better stealth
     success_count = 0
     
     async def process_single_product(p_url):
+        nonlocal success_count
         async with semaphore:
             try:
-                # Dynamic delay based on success rate and time
-                base_delay = 1.5 if success_count < len(product_urls) * 0.1 else 2.5
-                await asyncio.sleep(random.uniform(base_delay, base_delay * 1.8))
+                # MUCH longer delays for stealth
+                base_delay = 3.5 if success_count < len(product_urls) * 0.1 else 5.0
+                await asyncio.sleep(random.uniform(base_delay, base_delay * 2.2))
                 
                 logger.info(f"Processing: {p_url}")
                 p_html = await scraper.fetch_page(p_url, retries=1)
@@ -62,14 +113,13 @@ async def process_products_concurrently(scraper, product_urls, component_type, n
                     
                 scraped_data = await scraper.parse_product(p_html, p_url)
                 if scraped_data:
-                    nonlocal success_count
                     success_count += 1
                     logger.info(f"Scraped: {scraped_data.name} | Price: {scraped_data.price}")
                 return scraped_data, p_url
             except Exception as e:
                 logger.error(f"Error processing {p_url}: {e}")
-                # Add extra delay if errors start occurring
-                await asyncio.sleep(random.uniform(3, 6))
+                # Much longer delay if errors start occurring
+                await asyncio.sleep(random.uniform(8, 15))
                 return None
     
     # Process products in smaller batches with adaptive timing
@@ -93,13 +143,13 @@ async def process_products_concurrently(scraper, product_urls, component_type, n
             elif result and result[0]:
                 scraped_results.append(result)
         
-        # Adaptive batch delay based on error rate
-        if error_count > len(batch_urls) * 0.3:  # If >30% errors
-            logger.warning(f"High error rate ({error_count}/{len(batch_urls)}), increasing delays")
-            await asyncio.sleep(random.uniform(8, 15))
+        # Adaptive batch delay based on error rate - MUCH more conservative
+        if error_count > len(batch_urls) * 0.2:  # If >20% errors (reduced threshold)
+            logger.warning(f"High error rate ({error_count}/{len(batch_urls)}), increasing delays significantly")
+            await asyncio.sleep(random.uniform(15, 25))  # Much longer error delays
         else:
-            # Normal inter-batch delay
-            await asyncio.sleep(random.uniform(3, 6))
+            # Normal inter-batch delay - increased for safety
+            await asyncio.sleep(random.uniform(8, 15))
         
         # Memory cleanup after each batch
         if i % (batch_size * 2) == 0:
@@ -222,59 +272,114 @@ async def process_vendor_category(
     normalization: NormalizationService,
     session: Session
 ):
-    """Enhanced category processing with stealth crawling"""
+    """Enhanced category processing with stealth crawling and fallback URLs"""
     url = vendor_urls.get(component_type)
     if not url:
         return 0
     
     logger.info(f"🔄 Scraping {scraper.VENDOR_NAME} {component_type} from {url}")
     
-    # Collect all product URLs from first 5 pages (reduced for stealth)
-    all_product_urls = []
-    current_url = url
-    max_pages = 5  # Further reduced for better stealth
+    # Try primary URL first
+    result = await _try_scrape_url(scraper, url, component_type, normalization, session)
     
-    for page_count in range(1, max_pages + 1):
-        logger.info(f"📄 Fetching Page {page_count}/{max_pages}: {current_url}")
+    # If primary URL failed and we have fallbacks, try them
+    if result == 0 and component_type in [ComponentType.STORAGE, ComponentType.CASE]:
+        fallback_urls = []
+        if scraper.VENDOR_NAME == "StarTech" and component_type in STARTECH_FALLBACK_URLS:
+            fallback_urls = STARTECH_FALLBACK_URLS[component_type]
+        elif scraper.VENDOR_NAME == "Skyland" and component_type in SKYLAND_FALLBACK_URLS:
+            fallback_urls = SKYLAND_FALLBACK_URLS[component_type]
         
-        # Longer delay between category pages for stealth
-        if page_count > 1:
-            await asyncio.sleep(random.uniform(4, 8))
-        
-        html = await scraper.fetch_page(current_url)
-        if not html:
-            logger.error(f"❌ Failed to fetch page: {current_url}")
-            # More conservative retry logic
-            if page_count == 1:  # If first page fails, abort category
+        for fallback_url in fallback_urls:
+            logger.info(f"🔄 Trying fallback URL for {component_type}: {fallback_url}")
+            result = await _try_scrape_url(scraper, fallback_url, component_type, normalization, session)
+            if result > 0:  # Success with fallback
+                logger.info(f"✅ Fallback URL worked for {component_type}: {result} products")
                 break
-            else:
-                continue
+            await asyncio.sleep(random.uniform(5, 10))  # Extra delay between fallback attempts
     
-        product_urls = scraper.extract_product_urls(html)
-        logger.info(f"✅ Found {len(product_urls)} products on page {page_count}")
+    return result
+
+async def _try_scrape_url(scraper, url, component_type, normalization, session):
+    """Try scraping a specific URL with error handling and duplicate prevention"""
+    try:
+        # Collect all product URLs from first 2 pages (reduced for safety)
+        all_product_urls = []
+        current_url = url
+        max_pages = 2 # Reduced for better stealth and IP protection
         
-        # Remove duplicates while preserving order
-        new_urls = [url for url in product_urls if url not in all_product_urls]
-        all_product_urls.extend(new_urls)
+        for page_count in range(1, max_pages + 1):
+            logger.info(f"📄 Fetching Page {page_count}/{max_pages}: {current_url}")
+            
+            # Longer delay between category pages for stealth
+            if page_count > 1:
+                await asyncio.sleep(random.uniform(8, 15))  # Increased delays for safety
+            
+            html = await scraper.fetch_page(current_url)
+            if not html:
+                logger.error(f"❌ Failed to fetch page: {current_url}")
+                # More conservative retry logic
+                if page_count == 1:  # If first page fails, abort category
+                    break
+                else:
+                    continue
         
-        # Get next page URL
-        next_url = scraper.extract_next_page_url(html)
-        if not next_url:
-            logger.info("📋 No more pages available")
-            break
+            product_urls = scraper.extract_product_urls(html)
+            logger.info(f"✅ Found {len(product_urls)} products on page {page_count}")
+            
+            # Remove duplicates while preserving order
+            new_urls = [url for url in product_urls if url not in all_product_urls]
+            all_product_urls.extend(new_urls)
+            
+            # Get next page URL
+            next_url = scraper.extract_next_page_url(html)
+            if not next_url:
+                logger.info("📋 No more pages available")
+                break
+            
+            current_url = next_url
         
-        current_url = next_url
-    
-    total_products = len(all_product_urls)
-    logger.info(f"🎯 Total unique products to process: {total_products}")
-    
-    if total_products == 0:
+        # Limit to 30-40 products per category for safety and speed
+        target_products = random.randint(30, 40)
+        if len(all_product_urls) > target_products:
+            logger.info(f"🎯 Limiting to {target_products} products (from {len(all_product_urls)} found)")
+            all_product_urls = all_product_urls[:target_products]
+        
+        total_products = len(all_product_urls)
+        logger.info(f"🎯 Total unique products to process: {total_products}")
+        
+        if total_products == 0:
+            return 0
+        
+        # Check existing database entries to avoid duplicates
+        existing_urls = await get_existing_product_urls(session, scraper.VENDOR_NAME, component_type)
+        logger.info(f"🔍 Found {len(existing_urls)} existing products in database")
+        
+        # Filter out URLs that already exist
+        new_product_urls = [url for url in all_product_urls if url not in existing_urls]
+        skipped_count = len(all_product_urls) - len(new_product_urls)
+        
+        if skipped_count > 0:
+            logger.info(f"⏭️ Skipping {skipped_count} products (already in database)")
+        
+        if len(new_product_urls) == 0:
+            logger.info(f"✅ All products already exist in database - nothing to scrape")
+            return 0
+        
+        # Randomize product order to avoid predictable patterns
+        random.shuffle(new_product_urls)
+        
+        # Process all products concurrently with enhanced stealth
+        saved_count = await process_products_concurrently(
+            scraper, new_product_urls, component_type, normalization, session
+        )
+        
+        logger.info(f"✅ {scraper.VENDOR_NAME} {component_type} completed: {saved_count}/{len(new_product_urls)} products saved")
+        return saved_count
+        
+    except Exception as e:
+        logger.error(f"❌ Error scraping {component_type} from {url}: {e}")
         return 0
-    
-    # Randomize product order to avoid predictable patterns
-    random.shuffle(all_product_urls)
-    
-    # Process all products concurrently with enhanced stealth
     saved_count = await process_products_concurrently(
         scraper, all_product_urls, component_type, normalization, session
     )
