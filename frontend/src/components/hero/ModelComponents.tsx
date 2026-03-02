@@ -15,17 +15,23 @@ useGLTF.preload("/models/gigabyte_trx40_aorus_xtreme.glb");
 function ModelWrapper({ children, scale = 1, rotation = [0, 0, 0], opacity = 1 }: any) {
     const ref = useRef<THREE.Group>(null);
 
+    // Appear everything to the right of x=0
+    // Normal (1, 0, 0) means the plane faces right, keeping right side visible, culling left.
+    const clipPlane = useMemo(() => new THREE.Plane(new THREE.Vector3(1, 0, 0), 0), []);
+
     useFrame((state) => {
         if (ref.current) {
-            // Apply floating/rotation effects if needed, or let parent handle it
-            // For now, we trust the parent TakaScene to handle main movement
+            // Slow rotation for the 3D visual effect
+            ref.current.rotation.y += 0.01;
+            ref.current.rotation.x += 0.005;
 
-            // Handle opacity - this is tricky for complex GLTFs with many materials
-            // We traverse the object to update material opacity
+            // Apply opacity and clipping planes
             ref.current.traverse((child: any) => {
                 if (child.isMesh && child.material) {
                     child.material.transparent = true;
                     child.material.opacity = opacity;
+                    child.material.clippingPlanes = [clipPlane];
+                    child.material.needsUpdate = true;
                 }
             });
         }
