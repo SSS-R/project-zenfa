@@ -63,10 +63,13 @@ class SafeScraperManager:
                 
                 # Process StarTech with monitoring
                 logger.info(f"🔄 StarTech {component_type.value}")
+                pre_startech_requests = startech.request_count
                 startech_count = await process_vendor_category(
                     startech, STARTECH_URLS, component_type, normalization, session
                 )
-                total_requests += startech_count * 3  # Estimate 3 requests per product
+                startech_requests_made = startech.request_count - pre_startech_requests
+                total_requests += startech_requests_made
+                logger.info(f"📊 StarTech: {startech_count} products, {startech_requests_made} HTTP requests")
                 
                 # Inter-vendor break - CRITICAL for safety
                 break_time = random.uniform(60, 120)  # 1-2 minute break
@@ -80,10 +83,13 @@ class SafeScraperManager:
                 
                 # Process Skyland with monitoring
                 logger.info(f"🔄 Skyland {component_type.value}")
+                pre_skyland_requests = skyland.request_count
                 skyland_count = await process_vendor_category(
                     skyland, SKYLAND_URLS, component_type, normalization, session
                 )
-                total_requests += skyland_count * 3  # Estimate 3 requests per product
+                skyland_requests_made = skyland.request_count - pre_skyland_requests
+                total_requests += skyland_requests_made
+                logger.info(f"📊 Skyland: {skyland_count} products, {skyland_requests_made} HTTP requests")
                 
                 # Inter-component break - CRITICAL for safety
                 if component_type != component_types[-1]:  # Don't wait after last component

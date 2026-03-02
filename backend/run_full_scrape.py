@@ -15,7 +15,7 @@ from app.models.price import VendorPrice
 from datetime import datetime
 from app.models.component import Component
 
-async def get_existing_product_urls(session: Session, vendor_name: str, component_type: ComponentType) -> set:
+def get_existing_product_urls(session: Session, vendor_name: str, component_type: ComponentType) -> set:
     """Get existing product URLs from database to avoid duplicates"""
     try:
         # Get all vendor prices for this vendor and component type
@@ -352,7 +352,7 @@ async def _try_scrape_url(scraper, url, component_type, normalization, session):
             return 0
         
         # Check existing database entries to avoid duplicates
-        existing_urls = await get_existing_product_urls(session, scraper.VENDOR_NAME, component_type)
+        existing_urls = get_existing_product_urls(session, scraper.VENDOR_NAME, component_type)
         logger.info(f"🔍 Found {len(existing_urls)} existing products in database")
         
         # Filter out URLs that already exist
@@ -380,12 +380,6 @@ async def _try_scrape_url(scraper, url, component_type, normalization, session):
     except Exception as e:
         logger.error(f"❌ Error scraping {component_type} from {url}: {e}")
         return 0
-    saved_count = await process_products_concurrently(
-        scraper, all_product_urls, component_type, normalization, session
-    )
-    
-    logger.info(f"✅ {scraper.VENDOR_NAME} {component_type} completed: {saved_count}/{total_products} products saved")
-    return saved_count
 
 async def main():
     """Enhanced main scraping function with session management"""
