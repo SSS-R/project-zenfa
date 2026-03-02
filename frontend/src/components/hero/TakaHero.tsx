@@ -35,6 +35,7 @@ export default function TakaHero() {
                 camera={{ position: [0, 0, 7], fov: 50 }}
                 className="touch-none"
                 dpr={[1, 2]}
+                gl={{ localClippingEnabled: true }}
             >
                 <Suspense fallback={null}>
                     {/* Lighting - dramatic with teal accent */}
@@ -52,9 +53,7 @@ export default function TakaHero() {
 
                     <Environment preset="night" />
 
-                    <Float speed={0.5} rotationIntensity={0.1} floatIntensity={0.1}>
-                        <TakaScene />
-                    </Float>
+                    <TakaScene />
                 </Suspense>
             </Canvas>
 
