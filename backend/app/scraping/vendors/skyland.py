@@ -11,28 +11,39 @@ class SkylandScraper(BaseScraper):
     VENDOR_NAME = "Skyland"
 
     def extract_product_urls(self, html: str) -> list[str]:
-        """Extracts product URLs from Skyland category page."""
+        """Extracts product URLs from Skyland category page with enhanced selectors."""
         soup = self.parse_html(html)
         urls = []
         
-        # Skyland uses .product-thumb .caption a (or h4 a)
-        # Try multiple selectors
+        # Skyland uses various selectors depending on page layout
+        # Enhanced selectors for storage/case compatibility
         selectors = [
-            ".product-thumb .caption h4 a",
-            ".product-thumb .name a",
-            ".product-layout .caption h4 a"
+            ".product-thumb .caption h4 a",      # Standard layout
+            ".product-thumb .name a",             # Alternative naming
+            ".product-layout .caption h4 a",     # Layout variation
+            ".product-item .product-name a",     # Item-based layout
+            ".product-grid .product-title a",    # Grid layout
+            "h4 a[href*='product']",             # Generic product links
+            ".caption .name a",                  # Caption-based
+            ".product-list .name a"               # List view
         ]
         
         for selector in selectors:
             links = soup.select(selector)
-            if links:
-                for a_tag in links:
-                    href = a_tag.get("href")
-                    if href and href not in urls:
+            for a_tag in links:
+                href = a_tag.get("href")
+                if href and href not in urls:
+                    # Handle both absolute and relative URLs
+                    if href.startswith('http'):
                         urls.append(href)
-                # If we found links with one selector, likely we're good
-                if urls:
-                    break
+                    elif href.startswith('/'):
+                        urls.append(f"https://www.skyland.com.bd{href}")
+                    else:
+                        urls.append(f"https://www.skyland.com.bd/{href}")
+            
+            # If we found links with one selector, likely we're good
+            if urls:
+                break
                     
         return urls
 

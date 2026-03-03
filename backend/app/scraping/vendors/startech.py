@@ -16,11 +16,33 @@ class StarTechScraper(BaseScraper):
         soup = self.parse_html(html)
         urls = []
         
-        # StarTech uses .p-item-name a
-        for a_tag in soup.select(".p-item .p-item-name a"):
-            href = a_tag.get("href")
-            if href:
-                urls.append(href)
+        # StarTech uses multiple selectors depending on page layout
+        # Try multiple selectors for better compatibility with storage/case pages
+        selectors = [
+            ".p-item .p-item-name a",          # Standard product listing
+            ".product-item .product-name a",    # Alternative layout
+            ".product-thumb .name a",           # Thumbnail view
+            ".item .product-title a",           # Grid view
+            "h4.name a",                        # Simple list view
+            ".product-layout .name a"           # Category page layout
+        ]
+        
+        for selector in selectors:
+            links = soup.select(selector)
+            for a_tag in links:
+                href = a_tag.get("href")
+                if href and href not in urls:
+                    # Handle both absolute and relative URLs
+                    if href.startswith('http'):
+                        urls.append(href)
+                    elif href.startswith('/'):
+                        urls.append(f"https://www.startech.com.bd{href}")
+                    else:
+                        urls.append(f"https://www.startech.com.bd/{href}")
+            
+            # If we found products with one selector, we're likely good
+            if urls:
+                break
                 
         return urls
 
