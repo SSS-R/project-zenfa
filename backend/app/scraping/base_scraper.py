@@ -134,19 +134,28 @@ class BaseScraper(ABC):
         context = self.contexts[self.current_context_index]
         return await context.new_page()
     
-    async def _calculate_smart_delay(self, base_delay: float = 1.0) -> float:
-        """Calculate intelligent delay based on request patterns and timing"""
-        # Base random delay
-        delay = random.uniform(base_delay * 0.8, base_delay * 1.5)
+    async def _calculate_smart_delay(self, base_delay: float = 2.5) -> float:
+        """Calculate intelligent delay based on request patterns and timing - ENHANCED"""
+        # Much larger base random delay for safety
+        delay = random.uniform(base_delay * 1.2, base_delay * 2.5)
         
-        # Add extra delay for burst protection
-        if self.request_count % 5 == 0:
-            delay += random.uniform(2, 4)
+        # Add extra delay for burst protection - increased
+        if self.request_count % 4 == 0:  # Every 4 requests instead of 5
+            delay += random.uniform(4, 8)  # Doubled delay
         
-        # Add extra delay for sustained scraping
+        # Add extra delay for sustained scraping - much more aggressive
         current_time = asyncio.get_event_loop().time()
-        if current_time - self.session_start > 300:  # After 5 minutes
-            delay += random.uniform(1, 2)
+        session_duration = current_time - self.session_start
+        
+        if session_duration > 180:  # After just 3 minutes (was 5)
+            delay += random.uniform(3, 6)  # Increased delay
+        
+        if session_duration > 600:  # After 10 minutes
+            delay += random.uniform(5, 10)  # Even more delay
+        
+        # Add delay based on total request count
+        if self.request_count > 50:
+            delay += random.uniform(2, 4)
         
         return delay
 
