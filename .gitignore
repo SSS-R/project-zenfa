@@ -52,3 +52,5 @@ env/
 # dumps
 .database
 b2c_logs.txt
+migrate_db.py
+
