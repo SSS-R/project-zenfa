@@ -199,10 +199,10 @@ async def batch_save_products(scraped_results, scraper, component_type, normaliz
                         session.add(new_price)
                     total_saved += 1
                 else:
-                    # Create new component logic (simplified for batch processing)
-                    if scraper.VENDOR_NAME == "StarTech":
-                        await create_new_component(scraped_data, scraper, component_type, session)
-                        total_saved += 1
+                    # Create new component — both StarTech and Skyland can create new components
+                    # Previously only StarTech could create, causing Skyland products to be silently dropped
+                    await create_new_component(scraped_data, scraper, component_type, session)
+                    total_saved += 1
             
             # Commit entire batch at once
             session.commit()
