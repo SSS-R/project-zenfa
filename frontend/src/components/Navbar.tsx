@@ -30,6 +30,8 @@ export function Navbar() {
                 <div className="hidden md:flex items-center gap-6">
                     <NavLink href="/build" label="PC Builder" active={pathname === "/build"} />
                     <NavLink href="/components" label="Components" active={pathname === "/components"} />
+                    <NavLink href="/feed" label="Feed" active={pathname === "/feed"} />
+                    <NavLink href="/breaking" label="⚡ Breaking" active={pathname === "/breaking"} />
                 </div>
 
                 <div className="flex items-center gap-4">
