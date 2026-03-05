@@ -4,6 +4,36 @@
 
 ---
 
+## Design System & Visual Language
+
+All UI screens follow a consistent **dark glassmorphic** aesthetic:
+
+| Token | Value | Usage |
+|---|---|---|
+| **Background** | `#000000` (pure black) | Page canvas |
+| **Primary Accent** | `#4f9e97` (teal) | Buttons, sliders, highlights, active states |
+| **Primary Hover** | `#6ee1c9` (light teal) | Hover glow, link hover |
+| **Glass Card** | `rgba(255,255,255,0.03)` + `border: 1px solid rgba(255,255,255,0.06)` + `backdrop-filter: blur(12px)` | All panels & containers |
+| **Glass Card Glow** | Same as Glass Card + `box-shadow: 0 0 40px rgba(79,158,151,0.08)` | Primary/hero cards |
+| **Surface** | `#111111` – `#0a0a0a` | Inputs, dropdowns, nested surfaces |
+| **Text Primary** | `#ffffff` | Headings, values |
+| **Text Secondary** | `#a3a3a3` (`neutral-400`) | Labels, descriptions |
+| **Text Muted** | `#737373` (`neutral-500`) | Captions, hints |
+| **Danger** | `#ef4444` | Errors, urgent badges |
+| **Warning** | `#eab308` (yellow-500) | Leaderboard, gamification accents |
+| **Font** | System sans-serif / Inter | All text |
+| **Border Radius** | `12px` (cards), `20px` (hero), `9999px` (pills/badges) | Consistent rounding |
+| **3D Background** | Spline scene (dark vortex/tunnel) | `/build` page, full-bleed behind form |
+
+**Key Principles:**
+- Cards float over a pure black canvas with subtle glow borders
+- No sharp whites — everything is muted, with teal as the only vivid color
+- Micro-animations on hover (scale, glow, color shift)
+- `ShadowOverlay` gradient vignette on dashboard pages
+- Spline 3D animated background on the `/build` page only
+
+---
+
 ## Architecture Overview
 
 ```
@@ -47,21 +77,73 @@
 
 ---
 
-## Section 1: Input Form → BuildRequest Mapping
+## Section 1: Build Page — Input Form (`/build`)
 
-### Current UI State
+### Full-Page Layout
+
+The `/build` page is a full-bleed dark canvas with an animated **Spline 3D vortex** background. Content is centered with a two-column glass layout:
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  SPLINE 3D BACKGROUND  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓  │
+│                                                                       │
+│  ┌── NAVBAR (fixed, bg-black/80 blur) ──────────────────────────────┐  │
+│  │  🔲 PC Lagbe?              PC Builder  Components  Login  [Get…]│  │
+│  └──────────────────────────────────────────────────────────────────┘  │
+│                                                                       │
+│                   Build Your  ✦ Dream PC ✦                            │
+│            Define your budget and needs. AI will handle the rest.     │
+│                                                                       │
+│  ┌─ GLASS-CARD-GLOW (left) ──────┐  ┌─ GLASS-CARD (right) ─────────┐ │
+│  │                                │  │                               │ │
+│  │  Budget                ৳80,000 │  │    ┌─────────────────────┐    │ │
+│  │  ▓▓▓▓▓▓░░░░░░░░░░░░░░░░░░░░░  │  │    │    🧪 (flask icon)  │    │ │
+│  │  ৳30k ──────────────── ৳500k+  │  │    └─────────────────────┘    │ │
+│  │                                │  │                               │ │
+│  │  Primary Use                   │  │     Ready to Architect        │ │
+│  │  ┌──────────┐ ┌──────────────┐ │  │     Configure preferences     │ │
+│  │  │▌Gaming ▌ │ │  Workstation │ │  │     on the left to generate   │ │
+│  │  └──────────┘ └──────────────┘ │  │     a tailored PC build.      │ │
+│  │  ┌──────────┐ ┌──────────────┐ │  │                               │ │
+│  │  │ Editing  │ │    Office    │ │  │  (this panel transitions to   │ │
+│  │  └──────────┘ └──────────────┘ │  │   the RESULTS view after AI   │ │
+│  │                                │  │   generation completes)       │ │
+│  │  ▼ Advanced Preferences        │  │                               │ │
+│  │  (collapsed by default)        │  │                               │ │
+│  │                                │  │                               │ │
+│  │  ┌────────────────────────────┐│  │                               │ │
+│  │  │   ✦  Generate Build  ✦    ││  │                               │ │
+│  │  └────────────────────────────┘│  │                               │ │
+│  └────────────────────────────────┘  └───────────────────────────────┘ │
+│                                                                       │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Style Notes
+
+| Element | Style |
+|---|---|
+| Left card | `glass-card-glow` — the primary interaction surface, warm teal glow |
+| Right card | `glass-card` — dashed border when empty (placeholder state), solid when showing results |
+| Budget slider track | `bg-neutral-800` rounded bar, filled portion is `bg-gradient-to-r from-[#4f9e97] to-[#6ee1c9]` |
+| Budget value | Teal bold text `#4f9e97`, right-aligned |
+| Purpose buttons | 2×2 grid, `border-neutral-800 bg-neutral-900/50` default, active = `border-[#4f9e97] bg-[#4f9e97]/10 text-white` |
+| Generate button | Full-width, `btn-primary` — solid teal bg with hover glow, `py-4 text-lg` |
+| Page title | `text-4xl md:text-5xl font-bold`, "Dream PC" part uses `text-gradient-primary` (teal gradient) |
+
+### Input → Engine Field Mapping
 
 | UI Element | Status | Engine Field |
 |---|---|---|
 | Budget slider (single thumb) | ✅ Exists | `budget_min` / `budget_max` |
-| Primary Use (4 buttons) | ⚠️ Needs rename | `purpose` |
-| CPU Brand preference | ❌ Missing | `preferences.prefer_cpu_brand` |
-| GPU Brand preference | ❌ Missing | `preferences.prefer_gpu_brand` |
-| Include Monitor toggle | ❌ Missing | `preferences.include_monitor` |
-| Form Factor selector | ❌ Missing | `preferences.form_factor` |
-| RGB Priority selector | ❌ Missing | `preferences.rgb_priority` |
-| Min Storage selector | ❌ Missing | `preferences.min_storage_gb` |
-| Wi-Fi toggle | ❌ Missing | `preferences.prefer_wifi` |
+| Primary Use (4 buttons) | ⚠️ Rename "Workstation" → "General" | `purpose` |
+| CPU Brand preference | ❌ Missing — add in Advanced panel | `preferences.prefer_cpu_brand` |
+| GPU Brand preference | ❌ Missing — add in Advanced panel | `preferences.prefer_gpu_brand` |
+| Include Monitor toggle | ❌ Missing — add in Advanced panel | `preferences.include_monitor` |
+| Form Factor selector | ❌ Missing — add in Advanced panel | `preferences.form_factor` |
+| RGB Priority selector | ❌ Missing — add in Advanced panel | `preferences.rgb_priority` |
+| Min Storage selector | ❌ Missing — add in Advanced panel | `preferences.min_storage_gb` |
+| Wi-Fi toggle | ❌ Missing — add in Advanced panel | `preferences.prefer_wifi` |
 
 ---
 
@@ -69,13 +151,12 @@
 
 **Engine fields:** `budget_min` (int), `budget_max` (int) — both in BDT (৳)
 
-**UI Options (pick one):**
-- **Option A — Single slider (current):** Send `budget_min = budget_max = sliderValue`. The engine treats this as a fixed budget.
-- **Option B — Dual-thumb range slider:** Let users pick a range (e.g., ৳60k–৳65k). More flexible.
+**Current:** Single slider. Sends `budget_min = budget_max = sliderValue`.  
+**Optional upgrade:** Dual-thumb range slider (e.g., ৳60k–৳65k).
 
 ```
 Range: ৳30,000 → ৳500,000
-Step:  ৳5,000
+Step:  ৳1,000  (current)  →  consider ৳5,000 for cleaner UX
 ```
 
 ---
@@ -84,63 +165,51 @@ Step:  ৳5,000
 
 **Engine field:** `purpose` — strict enum: `"gaming"` | `"editing"` | `"office"` | `"general"`
 
-**Current UI:** Gaming, Workstation, Editing, Office  
-**Fix:** Rename **"Workstation"** → **"General"**, OR map it to `"editing"` in your JS.
+**Current UI labels:** Gaming, Workstation, Editing, Office  
+**Fix:** Rename **"Workstation"** → **"General"**, OR map `"workstation"` → `"general"` in JS.
 
-```
-┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐
-│  Gaming  │  │ Editing  │  │  Office  │  │ General  │
-└──────────┘  └──────────┘  └──────────┘  └──────────┘
-```
+Buttons are a 2×2 grid. Selected state has a teal left-border glow and teal-tinted bg.
 
 ---
 
-### 1.3 Advanced Preferences Panel
+### 1.3 Advanced Preferences (Collapsible)
 
-Add a collapsible **"Advanced Preferences"** section below the Purpose buttons. This maps to the `preferences` object.
+A `▼ Advanced Preferences` toggle below Purpose. When expanded, shows preferences inside the same glass card with subtle `bg-black/30` inset sections:
 
-#### CPU Brand — Segmented Control
+#### CPU Brand — Segmented Control (dark pills)
 ```
 [ Intel ]  [ AMD ]  [ No Preference ]
 ```
-→ Sends: `"prefer_cpu_brand": "Intel"` or `"AMD"` or `null`
+→ `"prefer_cpu_brand": "Intel"` | `"AMD"` | `null`
 
 #### GPU Brand — Segmented Control
 ```
 [ NVIDIA ]  [ AMD ]  [ Intel ]  [ No Preference ]
 ```
-→ Sends: `"prefer_gpu_brand": "NVIDIA"` or `"AMD"` or `"Intel"` or `null`
+→ `"prefer_gpu_brand": "NVIDIA"` | `"AMD"` | `"Intel"` | `null`
 
-#### Form Factor — Dropdown or Pills
+#### Form Factor — Dark Dropdown
 ```
-[ Standard (ATX) ▾ ]
+[ Standard (ATX)  ▾ ]     bg-black/50, border-neutral-700
   • Standard (ATX)
   • Compact (mATX)
   • Tiny (ITX)
 ```
-→ Sends: `"form_factor": "ATX"` or `"mATX"` or `"ITX"` or `null`
+→ `"form_factor": "ATX"` | `"mATX"` | `"ITX"` | `null`
 
 #### RGB Lighting — Segmented Control
 ```
 [ Heavy RGB ]  [ Some ]  [ None ]
 ```
-→ Sends: `"rgb_priority": "high"` or `"medium"` or `"low"`  
-Default: `"medium"`
+→ `"rgb_priority": "high"` | `"medium"` | `"low"` — Default: `"medium"`
 
-#### Min Storage — Dropdown
-```
-[ 512 GB ▾ ]
-  • 256 GB
-  • 512 GB
-  • 1 TB
-  • 2 TB
-```
-→ Sends: `"min_storage_gb": 256` or `512` or `1000` or `2000`
+#### Min Storage — Dark Dropdown
+→ `"min_storage_gb": 256` | `512` | `1000` | `2000`
 
-#### Toggles
+#### Toggles (dark toggle switches with teal active state)
 ```
-☐ Include Monitor in Budget       →  "include_monitor": true/false
-☐ Must have Wi-Fi                  →  "prefer_wifi": true/false
+○ Include Monitor in Budget       →  "include_monitor": true/false
+○ Must have Wi-Fi                  →  "prefer_wifi": true/false
 ```
 
 ---
@@ -297,51 +366,80 @@ async def call_zenfa_engine(budget: int, purpose: str, preferences: dict, compon
 
 ### 3.2 Results Page UI Layout
 
+The results **replace the right-hand panel** on the `/build` page (the "Ready to Architect" placeholder transitions to the results via `AnimatePresence`). The left form panel stays visible.
+
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    YOUR DREAM PC BUILD                          │
-│                                                                 │
-│   ┌─────────────┐   Score: 9.2/10  ★★★★★                       │
-│   │  Score Ring  │   "A balanced 1080p gaming build..."         │
-│   └─────────────┘                                               │
-│                                                                 │
-│   Total: ৳63,500    Remaining: ৳1,500    Tokens Left: 20       │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│   ┌──────┐  CPU: AMD Ryzen 5 7600        ৳23,000  [Swap]       │
-│   │ icon │  "6 cores on future-proof AM5 socket"                │
-│   └──────┘  StarTech  [Buy →]                                   │
-│                                                                 │
-│   ┌──────┐  GPU: NVIDIA RTX 4060         ৳38,000  [Swap]       │
-│   │ icon │  "Handles modern games with DLSS 3"                  │
-│   └──────┘  Ryans  [Buy →]                                      │
-│                                                                 │
-│   ... (RAM, Storage, PSU, Case, Cooler, Motherboard) ...        │
-│                                                                 │
-├─────────────────────────────────────────────────────────────────┤
-│   Trade-offs: "Opted for 16GB RAM to stay in budget."           │
-│   Upgrade Path: "Add another 16GB RAM stick later."             │
-│                                                                 │
-│   [ Save Build ]  [ Download PDF ↓ ]  [ Share Link 🔗 ]        │
-│   [ Start New Build ]                                           │
-└─────────────────────────────────────────────────────────────────┘
+┌─ RIGHT PANEL (glass-card, replaces placeholder) ──────────────────────┐
+│                                                                       │
+│  ┌─ HEADER ─────────────────────────────────────────────────────────┐  │
+│  │  Recommended Build                          Total: ৳63,500     │  │
+│  │  Optimized for gaming                 Remaining: ৳1,500        │  │
+│  └──────────────────── border-b border-neutral-800 ─────────────────┘  │
+│                                                                       │
+│  ┌─ SCORE BANNER (glass-card-glow, teal border-l-4) ───────────────┐  │
+│  │  ┌───────┐                                                      │  │
+│  │  │ 9.2   │   "A balanced 1080p gaming build with future-proof   │  │
+│  │  │ /10   │    AM5 platform and DLSS-capable GPU."               │  │
+│  │  └───────┘   ▓▓▓ ▓▓▓ ▓▓░ ▓░░ ▓░░  (5 mini score bars)         │  │
+│  └─────────────────────────────────────────────────────────────────┘  │
+│                                                                       │
+│  ┌─ COMPONENT ROW (hover:bg-white/5, group transition) ────────────┐  │
+│  │  ┌────┐                                                         │  │
+│  │  │ CP │  CPU · AMD Ryzen 5 7600                    ৳23,000     │  │
+│  │  │ U  │  "6 cores on future-proof AM5 socket"       [Swap]     │  │
+│  │  └────┘  StarTech  [Buy →]                                      │  │
+│  │  ──────────────────────────── thin separator ───────────────     │  │
+│  │  ┌────┐                                                         │  │
+│  │  │ GP │  GPU · NVIDIA RTX 4060                     ৳38,000     │  │
+│  │  │ U  │  "Handles modern games with DLSS 3"         [Swap]     │  │
+│  │  └────┘  Ryans  [Buy →]                                         │  │
+│  │                                                                 │  │
+│  │  ... RAM, Storage, PSU, Case, Cooler, Motherboard ...           │  │
+│  └─────────────────────────────────────────────────────────────────┘  │
+│                                                                       │
+│  ┌─ INSIGHTS (glass-card bg-neutral-900/50) ───────────────────────┐  │
+│  │  ⚖️ Trade-offs: "Opted for 16GB RAM to stay in budget."         │  │
+│  │  🔮 Upgrade Path: "Add another 16GB RAM stick later."           │  │
+│  └─────────────────────────────────────────────────────────────────┘  │
+│                                                                       │
+│  ┌─ ACTION BAR ────────────────────────────────────────────────────┐  │
+│  │  [ ✦ Save Build ✦ ]   [ ↓ PDF ]   [ 🔗 Share ]                 │  │
+│  │     btn-secondary        icon btn     icon btn teal             │  │
+│  └─────────────────────────────────────────────────────────────────┘  │
+└───────────────────────────────────────────────────────────────────────┘
 ```
+
+### Style Details
+
+| Element | Style |
+|---|---|
+| Component type badge | `w-10 h-10 rounded-md bg-neutral-800`, shows 2-letter abbreviation (CP, GP, RA, etc.), on hover → `bg-[#4f9e97]/20 text-[#4f9e97]` |
+| Component name | `font-medium text-sm text-neutral-200` |
+| AI reasoning line | `text-xs text-neutral-500` italic, below the name |
+| Price | `font-mono text-sm text-neutral-400`, right-aligned |
+| [Swap] button | Small pill, `text-[#4f9e97] border border-[#4f9e97]/30 bg-[#4f9e97]/10 rounded-lg px-3 py-1` |
+| [Buy →] link | `text-xs text-neutral-500 hover:text-[#4f9e97]`, opens vendor URL |
+| PDF button | Icon-only, `bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl` with `<Download>` icon |
+| Save button | `btn-secondary` — outlined pill |
+| Share button | Teal-tinted icon button with `<Share2>` icon |
+| Score ring | Circular progress indicator, teal fill, large number in center |
+| Score breakdown | 5 tiny horizontal bars with labels on hover |
 
 **Field → UI Mapping:**
 
 | Response Field | UI Element |
 |---|---|
-| `quality.score` | Score ring / badge at the top |
-| `quality.scores_breakdown.*` | 5 mini progress bars (hover tooltip) |
-| `explanation.summary` | Text below the score |
-| `build.components[]` | Component cards list |
-| `*.vendor_url` | "Buy →" link on each component card |
+| `quality.score` | Score ring / badge in score banner |
+| `quality.scores_breakdown.*` | 5 mini teal progress bars |
+| `explanation.summary` | Teal-bordered quote text |
+| `build.components[]` | Component card rows (scrollable) |
+| `*.vendor_url` | "Buy →" link on each card |
 | `explanation.per_component.*` | Subtitle text on each card |
-| `explanation.trade_offs` | Info banner at the bottom |
-| `explanation.upgrade_path` | "Next Upgrade" callout |
-| `build.total_price` | Total price display |
-| `build.remaining_budget` | "Budget remaining" badge |
-| **User's `token_balance`** | **"Tokens Left" badge (from session)** |
+| `explanation.trade_offs` | Insights banner — ⚖️ icon |
+| `explanation.upgrade_path` | Insights banner — 🔮 icon |
+| `build.total_price` | Header right-side, `text-2xl font-bold text-[#4f9e97]` |
+| `build.remaining_budget` | Small badge, `text-xs text-neutral-500` |
+| **User's `token_balance`** | **Shown in Navbar or header as a teal pill** |
 
 ---
 
@@ -349,10 +447,34 @@ async def call_zenfa_engine(budget: int, purpose: str, preferences: dict, compon
 
 When a user clicks **[Swap]** on a component:
 
-1. Show a modal with AI-suggested alternatives (from `quality.suggestions` if score was < 8.5).
-2. Also show a "Search All Components" option that queries the `zenfa_catalog` DB.
-3. When user picks a replacement, `backend_b2c` constructs a **new `BuildRequest`** with the swapped component locked in, and calls `/internal/build` again.
-4. **Token deduction:** Each tweak costs **5 tokens** (unless the user has remaining free tweaks from their purchased pack).
+1. A **glass modal** slides up (dark overlay + `glass-card` centered, `backdrop-blur`) showing AI-suggested alternatives.
+2. Also shows a "Search All Components" search bar that queries `zenfa_catalog`.
+3. When user picks a replacement, `backend_b2c` constructs a **new `BuildRequest`** with the swapped component locked in and calls `/internal/build` again.
+4. **Token deduction:** Each tweak costs **5 tokens** (unless free tweaks remain).
+5. On confirm, a micro-animation plays: a teal coin floats away with "-5 Tokens".
+
+### Swap Modal Layout
+
+```
+┌─ MODAL (glass-card, centered, max-w-lg) ─────────────────────┐
+│                                                               │
+│  Swap CPU                                            [ ✕ ]   │
+│  Current: AMD Ryzen 5 7600 · ৳23,000                         │
+│                                                               │
+│  ┌─ SEARCH ─────────────────────────────────────────────────┐ │
+│  │  🔍  Search components...     bg-black/50 border-neutral │ │
+│  └──────────────────────────────────────────────────────────┘ │
+│                                                               │
+│  AI Suggestions                                               │
+│  ┌──────────────────────────────────────────────────────────┐ │
+│  │  Intel Core i5-13400F    ৳21,000   Price: -৳2,000  [▶]  │ │
+│  │  AMD Ryzen 7 5700X       ৳25,500   Price: +৳2,500  [▶]  │ │
+│  └──────────────────────────────────────────────────────────┘ │
+│                                                               │
+│  ⚡ This swap will cost 5 tokens                              │
+│                                                               │
+└───────────────────────────────────────────────────────────────┘
+```
 
 ### Token Rules for Tweaks
 
@@ -469,32 +591,136 @@ After the AI generates a result, the user can click **[Save Build]**:
 
 ### Dashboard (`/dashboard`)
 
+Full-bleed black canvas with `ShadowOverlay` gradient vignette. All cards use `glass-card` or `glass-card-glow`.
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  MY DASHBOARD                              [ New Build ]    │
-│                                                             │
-│  ┌──────────────────────────────┐  ┌──────────────────────┐ │
-│  │  Current Balance             │  │  Quick Stats         │ │
-│  │  ██████████ 20 Tokens        │  │  0 Saved Builds      │ │
-│  │  "2 Full AI Builds"          │  │  3 Support Tickets → │ │
-│  │  [Get More Tokens]           │  │                      │ │
-│  │  [View Leaderboard ★]       │  │                      │ │
-│  └──────────────────────────────┘  └──────────────────────┘ │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────────┐ │
-│  │  🎁 Earn Free Tokens                                    │ │
-│  │  Share your referral link → both earn 10 tokens!        │ │
-│  │  [ http://pclagbe.com/register?ref=H2K56XBT ] [Copy]   │ │
-│  └─────────────────────────────────────────────────────────┘ │
-│                                                             │
-│  Recent Builds                                              │
-│  (Empty state: "Start your first build" link)               │
-└─────────────────────────────────────────────────────────────┘
+┌─ PAGE: /dashboard ──────────────────────────────────────────────────────┐
+│  ░░░░░░░░░░░░░░░  ShadowOverlay (subtle gradient vignette)  ░░░░░░░░  │
+│                                                                        │
+│  My Dashboard                                      [ ✦ New Build ✦ ]   │
+│                                                                        │
+│  ┌─ GLASS-CARD-GLOW (col-span-2) ──────────┐  ┌─ GLASS-CARD ────────┐ │
+│  │  CURRENT BALANCE (small caps, neutral)   │  │  QUICK STATS        │ │
+│  │                                          │  │  border-l-4 teal    │ │
+│  │  ▓▓▓▓▓▓▓▓▓▓▓▓  20  Tokens               │  │                     │ │
+│  │  (text-5xl extrabold teal)               │  │  0  Saved Builds    │ │
+│  │  "You have enough for 2 Full AI Builds"  │  │  3  Support →       │ │
+│  │                                          │  │                     │ │
+│  │  [Get More Tokens]  [★ View Leaderboard] │  │                     │ │
+│  │   teal outlined btn   yellow outlined    │  │                     │ │
+│  └──────────────────────────────────────────┘  └─────────────────────┘ │
+│                                                                        │
+│  ┌─ GLASS-CARD (teal border-l, subtle teal glow bg) ──────────────────┐│
+│  │  ┌──────────┐                                                      ││
+│  │  │ 🎁 QR    │  Earn Free Tokens                                    ││
+│  │  │  icon    │  Share your referral link with friends. When they     ││
+│  │  └──────────┘  sign up, you both receive 10 bonus tokens!          ││
+│  │                                                                    ││
+│  │  ┌──────────────────────────────────────────────────┐  ┌────────┐  ││
+│  │  │  pclagbe.com/register?ref=H2K56XBT  (font-mono) │  │  Copy  │  ││
+│  │  │  bg-black/50, border-neutral-700, rounded-xl     │  │  Link  │  ││
+│  │  └──────────────────────────────────────────────────┘  └────────┘  ││
+│  └────────────────────────────────────────────────────────────────────┘│
+│                                                                        │
+│  Recent Builds                                                         │
+│  ┌─ EMPTY STATE (dashed border, border-neutral-800) ──────────────────┐│
+│  │  📦 (icon, neutral-700)                                            ││
+│  │  "You haven't generated any saved builds yet."                     ││
+│  │   Start your first build  (teal link)                              ││
+│  └────────────────────────────────────────────────────────────────────┘│
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### Leaderboard (`/dashboard/leaderboard`)
+
+```
+┌─ PAGE: /dashboard/leaderboard ─────────────────────────────────────────┐
+│  ░░░░░░░░░░░░░░░  ShadowOverlay + yellow blur glow  ░░░░░░░░░░░░░░░░  │
+│                                                                        │
+│  [← Back]   Top Promoters  🏆                                         │
+│             The most active community members.                         │
+│                                                                        │
+│  ┌─ GLASS-CARD (border-yellow-500/20, shadow yellow glow) ────────────┐│
+│  │  ┌ HEADER: gradient yellow/10 → transparent, border-b white/5 ──┐  ││
+│  │  │  👥 Hall of Fame                         [ LIVE UPDATES ]    │  ││
+│  │  └──────────────────────────────────────────────────────────────┘  ││
+│  │                                                                    ││
+│  │  ┌─ ROW (bg-gradient from-white/3, top 3 highlighted) ──────────┐ ││
+│  │  │  🏆  #1   Sultan Rafi        sul***@gmail.com     12 Invites │ ││
+│  │  │       MVP badge (yellow bg, black text, tiny pill)            │ ││
+│  │  ├───────────────── divide-y divide-white/5 ─────────────────────┤ ││
+│  │  │  🥈  #2   Ahmed Khan         ahm***@yahoo.com     8 Invites │ ││
+│  │  ├──────────────────────────────────────────────────────────────┤ ││
+│  │  │  🥉  #3   Test User          tes***@example.com   5 Invites │ ││
+│  │  ├──────────────────────────────────────────────────────────────┤ ││
+│  │  │   4   Anonymous Builder     ano***@mail.com       2 Invites │ ││
+│  │  └──────────────────────────────────────────────────────────────┘ ││
+│  └────────────────────────────────────────────────────────────────────┘│
+│                                                                        │
+│  Want to see your name here? Go to Dashboard and share your link!      │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+### Shared Build Page (`/build/[slug]`)
+
+```
+┌─ PAGE: /build/{slug} ──────────────────────────────────────────────────┐
+│  ░░░░░░░░░░░░░░  Spline 3D background  ░░░░░░░░░░░░░░░░░░░░░░░░░░░░  │
+│                                                                        │
+│                 [ Shared Build ]  (teal pill badge)                    │
+│            Gaming  ✦ Beast ✦   (text-4xl bold, gradient)              │
+│            Total Value: ৳85,000  (text-neutral-400)                   │
+│                                                                        │
+│  ┌─ GLASS-CARD (max-w-3xl, centered, shadow-lg) ──────────────────────┐│
+│  │  Components                          [ ↓ PDF ]  [ 🔗 Share ]      ││
+│  │  ──────────────── border-b ─────────────────────                    ││
+│  │                                                                    ││
+│  │  ┌────┐  CPU · AMD Ryzen 5 5600X                      ৳17,500    ││
+│  │  │ CP │  bg-black/40 border-white/5 hover:bg-white/5               ││
+│  │  └────┘                                                            ││
+│  │  ┌────┐  GPU · Gigabyte RTX 3060 12GB                 ৳38,000    ││
+│  │  │ GP │                                                            ││
+│  │  └────┘                                                            ││
+│  │  ... more components ...                                           ││
+│  └────────────────────────────────────────────────────────────────────┘│
+│                                                                        │
+│  Want to build something similar?                                      │
+│  [ ✦ Create Your Own PC ✦ ]  (btn-primary, links with ?ref=CODE)      │
+│                                                                        │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Admin Dashboard (`/admin`)
 
-The admin panel is a **protected section of the same Next.js app** (not a separate app), guarded by `role === 'admin'` checks.
+The admin panel is a **protected section of the same Next.js app**, guarded by `role === 'admin'`.
+
+```
+┌─ PAGE: /admin ─────────────────────────────────────────────────────────┐
+│                                                                        │
+│  Analytics Overview  (text-3xl bold)                                   │
+│                                                                        │
+│  ┌─ GRID: 4 stat cards ──────────────────────────────────────────────┐ │
+│  │ ┌─ GLOW ────────┐ ┌─ blue-l ───────┐ ┌─ yellow-l ──────┐ ┌─ red ┐│ │
+│  │ │ ৳ icon        │ │ 👥 icon        │ │ 🕐 icon         │ │ ⚠ ic ││ │
+│  │ │               │ │                │ │                  │ │      ││ │
+│  │ │  ৳12,500      │ │  247           │ │  4               │ │  6   ││ │
+│  │ │  Total Revenue│ │  Registered    │ │  Pending         │ │ Open ││ │
+│  │ │               │ │  Users         │ │  Payments        │ │ Tick ││ │
+│  │ └───────────────┘ └────────────────┘ └──────────────────┘ └──────┘│ │
+│  └────────────────────────────────────────────────────────────────────┘ │
+│                                                                        │
+│  ┌─ 2-COLUMN GRID ───────────────────────────────────────────────────┐ │
+│  │ ┌─ GLASS-CARD ──────────────┐  ┌─ GLASS-CARD (yellow glow) ─────┐│ │
+│  │ │  Admin Tasks              │  │  👥 Top Referrers  [MVP BOARD] ││ │
+│  │ │  • Review Transactions    │  │                                ││ │
+│  │ │  • Check Support Tickets  │  │  #1  Sultan Rafi    12 invites ││ │
+│  │ │  • Users & Tokens mgmt   │  │  #2  Ahmed Khan      8 invites ││ │
+│  │ └───────────────────────────┘  │  #3  Test User       5 invites ││ │
+│  │                                │  (No referrers yet.)           ││ │
+│  │                                └────────────────────────────────┘│ │
+│  └────────────────────────────────────────────────────────────────────┘ │
+└────────────────────────────────────────────────────────────────────────┘
+```
 
 | Tab/Page | Purpose |
 |---|---|
@@ -510,13 +736,13 @@ The admin panel is a **protected section of the same Next.js app** (not a separa
 
 | State | Duration | UI |
 |---|---|---|
-| User clicks "Generate Build" | 0s | Button → spinner, text: "Architecting..." |
-| Token check + deduction | 0–0.5s | (Happens server-side, user sees loading) |
-| Knapsack optimizing | 0–2s | Right panel: animated gears / circuit animation |
-| LLM evaluating | 2–8s | Right panel: "AI is reviewing your build..." |
-| Done | — | Transition to Results display |
-| Insufficient tokens | — | Show modal: "Not enough tokens. Buy a pack!" |
-| Error | — | Show toast: "Something went wrong. Try again." |
+| User clicks "Generate Build" | 0s | Button inner text → `<Spinner />` + "Analyzing Prices..." (white spinner, 5×5) |
+| Token check + deduction | 0–0.5s | Server-side, user sees the button spinner continue |
+| Knapsack optimizing | 0–2s | Right panel: skeleton loader — component card placeholders fade in one by one |
+| LLM evaluating | 2–8s | Right panel: rotating status text: *"Analyzing bottleneck margins..."* → *"Sourcing best prices..."* → *"AI is reviewing your build..."* |
+| Done | — | `AnimatePresence` fades in Results panel (scale 0.95 → 1, opacity 0 → 1) |
+| Insufficient tokens | — | Glass modal slides up: "Not enough tokens" + [Get More Tokens] button |
+| Error | — | Red banner with ⚠️ icon: `bg-red-900/20 border-red-500/30 text-red-200` |
 
 ---
 
@@ -590,26 +816,23 @@ npm run dev
 
 ---
 
-## Section 12: Recommended UI/UX Enhancements & Polish
+## Section 12: UX Enhancement Roadmap
 
-### 12.1 Input Form Enhancements (Pre-Build)
-- **Wizard/Multi-step Interface:** Break the input form into two steps to reduce cognitive load. 
-  - *Step 1 (The Basics):* Budget Slider and Primary Purpose. 
-  - *Step 2 (The Vibe):* Advanced preferences like Brands, RGB, and Form Factor.
-- **Visual Tooltips & Icons:** Use recognizable icons for Form Factors (e.g., a large tower vs. a small cube) and actual brand logos (Intel, AMD, NVIDIA) instead of plain text options.
-- **Use-Case Presets:** Reframe the "Purpose" buttons to ask "What are you trying to run?" with options like *Esports (Valorant)* or *AAA Titles (Cyberpunk)*. This maps transparently to the backend `purpose` but feels highly personalized.
+### 12.1 Input Form
+- **Wizard/Multi-step:** Step 1 → Budget + Purpose (current view). Step 2 → expands the Advanced Preferences panel with brand logos (Intel, AMD, NVIDIA) instead of plain text.
+- **Game-specific Presets:** Reframe "Purpose" as "What are you trying to run?" → *Esports (Valorant)* or *AAA Titles (Cyberpunk)*. Maps to `purpose` enum internally.
+- **Form Factor Icons:** Show mini tower vs. small cube illustrations for ATX/mATX/ITX.
 
-### 12.2 Results Page Enhancements (Post-Build)
-- **Estimated Performance Badges:** Add badges showing estimated 1080p performance (e.g., "Valorant: 240+ FPS" or "Cyberpunk: 60 FPS"). This is the most sought-after metric for PC gamers.
-- **Compatibility Guarantee Badge:** Prominently display a green badge stating: *"100% Compatibility Guaranteed by Zenfa AI"* to alleviate beginners' fears of incompatible parts.
-- **Visual Component Hierarchy:** Group "The Core" parts (CPU, GPU, RAM, Motherboard) in larger UI cards, with secondary parts (Storage, PSU, Case, Cooler) organized more compactly beneath them.
-- **Vibe/Case Preview:** Display an abstract representation of the chosen build style (e.g., a glowing small chassis if they picked ITX + Heavy RGB) to help them visualize the end product.
+### 12.2 Results Page
+- **Performance Badges:** Teal-bordered pills: "Valorant: 240+ FPS" or "Cyberpunk: 60 FPS" — displayed beside the score ring.
+- **Compatibility Guarantee:** Green `glass-card` badge: *"100% Compatibility Guaranteed by Zenfa AI"* with a shield icon.
+- **Component Hierarchy:** "The Core" (CPU, GPU, RAM, MB) get larger cards with expanded specs. Secondary parts (Storage, PSU, Case, Cooler) collapse into a compact grid below.
 
-### 12.3 Component Swapping UX (Tweaks)
-- **Side-by-Side Diff View:** When swapping a component, show a direct comparison: e.g., switching an RTX 4060 to RX 7600 shows `Price: -৳2000`, `VRAM: Same`.
-- **Domino Effect Warnings:** Show a clear tooltip if a swap forces other changes. For example: *"Note: Swapping to AMD will automatically adjust your Motherboard to match."*
-- **Token Spend Animation:** Because swaps cost tokens, trigger a micro-animation (like a coin floating away with "-5 Tokens") upon confirming a swap. This ensures users are explicitly aware of the cost and prevents "surprise" balances.
+### 12.3 Component Swapping
+- **Diff View:** Side-by-side in the swap modal: `Price: -৳2,000`, `Cores: Same`, `VRAM: +4GB` — with green/red delta badges.
+- **Domino Warnings:** Tooltip on swap confirm: *"Swapping to AMD will automatically adjust your Motherboard."* — uses the existing teal info banner style.
+- **Token Animation:** Floating "-5 Tokens" coin animation on swap confirm.
 
-### 12.4 Loading states & Polish
-- **Skeleton Loaders over Spinners:** During the LLM evaluation phase (2-8 seconds), display a skeleton loader where PC component cards sequentially fade in.
-- **Dynamic Status Updates:** Rotate engaging text under the loader, such as *"Analyzing bottleneck margins..."* or *"Sourcing best prices from StarTech & Ryans..."*, so the user feels valuable work is being done.
+### 12.4 Loading & Polish
+- **Skeleton Loaders:** During LLM phase, component card placeholders pulse in one-by-one (dark skeleton on `bg-neutral-900`).
+- **Rotating Status Text:** Cycle through: *"Analyzing bottleneck margins..."* → *"Sourcing best prices from StarTech & Ryans..."* → *"AI is finalizing your build..."*

@@ -29,7 +29,7 @@ export function AnnouncementBanner() {
                     setAnnouncements(data);
                 }
             } catch (e) {
-                console.error('Failed to load announcements', e);
+                console.warn('Failed to load announcements (backend may be down)', e);
             }
         };
 
