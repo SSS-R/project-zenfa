@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         if (error instanceof z.ZodError) {
             return NextResponse.json(
-                { error: "Invalid swap payload.", details: error.errors },
+                { error: "Invalid swap payload.", details: error.issues },
                 { status: 400 }
             );
         }

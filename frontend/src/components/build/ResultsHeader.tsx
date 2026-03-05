@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CheckCircle2, ShieldCheck, Gamepad2, Swords, Crosshair, Zap } from "lucide-react";
+import { ShieldCheck, Swords, Crosshair, Zap } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
 interface ResultsHeaderProps {
@@ -22,8 +22,6 @@ interface ResultsHeaderProps {
 export function ResultsHeader({ score, summary, totalPrice, remainingBudget, purpose, scoresBreakdown }: ResultsHeaderProps) {
     const formatBDT = (num: number) => `৳${num.toLocaleString("en-IN")}`;
 
-    // Simple mock performance logic based on price for UI purposes
-    // In a real app, the backend would supply these estimated FPS numbers based on the GPU
     const getSimulatedFPS = () => {
         if (purpose !== "gaming") return null;
 
@@ -35,125 +33,78 @@ export function ResultsHeader({ score, summary, totalPrice, remainingBudget, pur
     const fps = getSimulatedFPS();
 
     return (
-        <div className="w-full space-y-6 animate-in fade-in slide-in-from-top-4 duration-700">
+        <div className="w-full mb-6 space-y-4 animate-in fade-in duration-700">
 
             {/* Top Banner: Score & Summary */}
-            <div className="flex flex-col md:flex-row items-center md:items-start gap-6 bg-card border border-border/50 rounded-2xl p-6 md:p-8 shadow-xl relative overflow-hidden group">
+            <div className="glass-card md:p-6 p-5 border-l-4 border-l-[#4f9e97]">
+                <div className="flex flex-col md:flex-row gap-5 md:gap-8 items-start md:items-center">
 
-                {/* Decorative Background Glow */}
-                <div className="absolute top-[-50%] right-[-10%] w-[60%] h-[200%] bg-primary/5 blur-3xl rounded-full transform rotate-12 pointer-events-none group-hover:bg-primary/10 transition-colors duration-700" />
-
-                {/* Score Ring (Simple Implementation using SVG) */}
-                <div className="relative flex-shrink-0 w-32 h-32 flex items-center justify-center bg-background rounded-full border-4 border-secondary shadow-inner">
-                    <svg className="absolute inset-0 w-full h-full transform -rotate-90">
-                        <circle
-                            cx="64" cy="64" r="60"
-                            stroke="currentColor"
-                            strokeWidth="8"
-                            fill="transparent"
-                            className="text-primary/20"
-                        />
-                        <circle
-                            cx="64" cy="64" r="60"
-                            stroke="url(#gradient)"
-                            strokeWidth="8"
-                            fill="transparent"
-                            strokeDasharray="377"
-                            strokeDashoffset={377 - (377 * (score / 10))}
-                            strokeLinecap="round"
-                            className="transition-all duration-1000 ease-out"
-                        />
-                        <defs>
-                            <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                                <stop offset="0%" stopColor="#3b82f6" />
-                                <stop offset="100%" stopColor="#6366f1" />
-                            </linearGradient>
-                        </defs>
-                    </svg>
-                    <div className="text-center">
-                        <div className="text-3xl font-extrabold text-foreground">{score.toFixed(1)}</div>
-                        <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mt-1">out of 10</div>
+                    {/* Compact Score Block */}
+                    <div className="flex-shrink-0 text-center md:pr-8 md:border-r border-neutral-800/50">
+                        <div className="text-4xl sm:text-5xl font-black text-white">{score.toFixed(1)}</div>
+                        <div className="text-[10px] sm:text-xs font-bold tracking-widest text-[#4f9e97] uppercase mt-1">out of 10</div>
                     </div>
-                </div>
 
-                {/* Text & Guarantee */}
-                <div className="flex-1 space-y-4 text-center md:text-left z-10">
-                    <div>
-                        <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-xs font-bold uppercase tracking-wider mb-3">
+                    {/* Text block */}
+                    <div className="flex-1 space-y-2.5">
+                        <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#4f9e97]/10 border border-[#4f9e97]/20 text-[#4f9e97] text-xs font-bold uppercase tracking-wider">
                             <ShieldCheck className="w-4 h-4" />
-                            <span>100% Compatibility Guaranteed</span>
+                            <span>100% Compatibility Checked</span>
                         </div>
-                        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground leading-tight">
-                            YOUR DREAM PC BUILD
-                        </h1>
-                    </div>
-                    <p className="text-muted-foreground text-sm sm:text-base leading-relaxed max-w-2xl">
-                        {summary}
-                    </p>
-
-                    {/* Micro Breakdowns (Hidden on very small screens) */}
-                    <div className="hidden sm:flex flex-wrap gap-4 pt-2">
-                        <div className="space-y-1.5 w-24">
-                            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex justify-between">
-                                <span>Value</span> <span>{scoresBreakdown.value_score}/3</span>
-                            </div>
-                            <Progress value={(scoresBreakdown.value_score / 3) * 100} className="h-1.5" />
-                        </div>
-                        <div className="space-y-1.5 w-24">
-                            <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider flex justify-between">
-                                <span>Balance</span> <span>{scoresBreakdown.build_balance}/2</span>
-                            </div>
-                            <Progress value={(scoresBreakdown.build_balance / 2) * 100} className="h-1.5 bg-secondary" />
-                        </div>
+                        <h2 className="text-2xl font-bold text-white tracking-tight">
+                            The Engineered Core
+                        </h2>
+                        <p className="text-sm text-neutral-400 leading-relaxed max-w-xl">
+                            {summary}
+                        </p>
                     </div>
                 </div>
             </div>
 
             {/* Financials & Estimated Performance Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                 {/* Price Box */}
-                <div className="bg-card border border-border/50 rounded-xl p-5 shadow-sm flex items-center justify-between">
+                <div className="flex items-center justify-between bg-neutral-900/40 border border-neutral-800/50 p-5 rounded-xl">
                     <div>
-                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Total Estimated Price</div>
-                        <div className="text-3xl font-mono font-bold text-foreground">{formatBDT(totalPrice)}</div>
+                        <div className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Total Build Price</div>
+                        <div className="text-2xl sm:text-3xl font-mono font-bold text-white">{formatBDT(totalPrice)}</div>
                     </div>
                     <div className="text-right">
-                        <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-1">Remaining Budget</div>
-                        <div className="text-lg font-mono font-semibold text-emerald-500">+{formatBDT(remainingBudget)}</div>
+                        <div className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-1">Under Budget</div>
+                        <div className="text-lg font-mono font-bold text-[#4f9e97]">+{formatBDT(remainingBudget)}</div>
                     </div>
                 </div>
 
                 {/* Estimated Performance Badges */}
                 {fps ? (
-                    <div className="bg-gradient-to-br from-indigo-500/10 to-blue-500/5 border border-indigo-500/20 rounded-xl p-5 shadow-sm flex flex-col justify-center relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl transform translate-x-10 -translate-y-10" />
-                        <div className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                    <div className="bg-neutral-900/40 border border-[#4f9e97]/20 p-5 rounded-xl flex flex-col justify-center relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-[#4f9e97]/5 rounded-full blur-2xl transform translate-x-10 -translate-y-10" />
+                        <div className="text-[10px] font-bold text-[#4f9e97] uppercase tracking-wider mb-3 flex items-center gap-1.5">
                             <Zap className="w-4 h-4" /> Estimated 1080p Performance
                         </div>
                         <div className="flex gap-3">
-                            <div className="flex-1 bg-background/50 border border-border/50 rounded-lg p-2.5 flex items-center gap-3 backdrop-blur-sm">
-                                <div className="bg-indigo-500/20 p-1.5 rounded-md text-indigo-500"><Crosshair className="w-5 h-5" /></div>
+                            <div className="flex-1 bg-black/40 border border-neutral-800 rounded-lg p-2.5 flex items-center gap-3">
+                                <div className="text-neutral-500"><Crosshair className="w-5 h-5" /></div>
                                 <div>
-                                    <div className="text-[10px] font-bold text-muted-foreground uppercase">Valorant / CS2</div>
-                                    <div className="text-lg font-black text-foreground">{fps.val} FPS</div>
+                                    <div className="text-[9px] font-bold text-neutral-500 uppercase">Esports / Val</div>
+                                    <div className="text-base sm:text-lg font-black text-white">{fps.val} FPS</div>
                                 </div>
                             </div>
-                            <div className="flex-1 bg-background/50 border border-border/50 rounded-lg p-2.5 flex items-center gap-3 backdrop-blur-sm">
-                                <div className="bg-rose-500/20 p-1.5 rounded-md text-rose-500"><Swords className="w-5 h-5" /></div>
+                            <div className="flex-1 bg-black/40 border border-neutral-800 rounded-lg p-2.5 flex items-center gap-3">
+                                <div className="text-rose-500/50"><Swords className="w-5 h-5" /></div>
                                 <div>
-                                    <div className="text-[10px] font-bold text-muted-foreground uppercase">Cyberpunk 2077</div>
-                                    <div className="text-lg font-black text-foreground">{fps.cbp} FPS</div>
+                                    <div className="text-[9px] font-bold text-neutral-500 uppercase">AAA Titles</div>
+                                    <div className="text-base sm:text-lg font-black text-white">{fps.cbp} FPS</div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 ) : (
-                    <div className="bg-card border border-border/50 rounded-xl p-5 shadow-sm flex items-center justify-center opacity-50">
-                        <div className="text-sm font-medium text-muted-foreground">Performance estimates only available for gaming builds.</div>
+                    <div className="bg-neutral-900/40 border border-neutral-800/50 p-5 rounded-xl flex items-center justify-center">
+                        <div className="text-sm font-medium text-neutral-500">Performance estimates available for gaming configurations.</div>
                     </div>
                 )}
-
             </div>
         </div>
     );

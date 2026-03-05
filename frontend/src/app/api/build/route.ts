@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     } catch (error) {
         if (error instanceof ZodError) {
             return NextResponse.json(
-                { error: "Invalid payload formatting.", details: error.errors },
+                { error: "Invalid payload formatting.", details: error.issues },
                 { status: 400 }
             );
         }
