@@ -6,18 +6,18 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     # Database
-    database_url: str = "postgresql://postgres:zenfa_password@localhost:5432/zenfa_b2c"
+    database_url: str
     
     # Redis
-    redis_url: str = "redis://localhost:6379"
+    redis_url: str
     
     # API
     api_title: str = "PC Lagbe B2C API"
     api_version: str = "1.0.0"
-    debug: bool = True
+    debug: bool = False
     
     # Security
-    secret_key: str = "supersecretkey_change_me_in_production"
+    secret_key: str
     algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24 * 7 # 7 days
     

@@ -64,7 +64,10 @@ async def read_components(
         base_query = base_query.where(Component.brand == brand)
 
     if search:
-        base_query = base_query.where(Component.name.ilike(f"%{search}%"))
+        safe_search = search.replace("%", r"\%").replace("_", r"\_")
+        base_query = base_query.where(
+            Component.name.ilike(f"%{safe_search}%", escape="\\")
+        )
 
     # Price filtering on in-stock items
     if min_price is not None:
