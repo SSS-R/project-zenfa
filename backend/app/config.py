@@ -6,15 +6,18 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     # Database
-    database_url: str = "postgresql://zenfa_user:zenfa_password@localhost:5432/zenfa_db"
+    database_url: str
     
     # Redis
-    redis_url: str = "redis://localhost:6379"
+    redis_url: str
     
     # API
     api_title: str = "Zenfa API"
     api_version: str = "1.0.0"
-    debug: bool = True
+    debug: bool = False
+    
+    # Security
+    secret_key: str
 
     class Config:
         env_file = ".env"

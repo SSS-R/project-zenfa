@@ -5,31 +5,23 @@
 
 ---
 
-## Phase 1 — Immediate Security Hardening (Day 1)
+## Phase 1 — Immediate Security Hardening (Day 1) ✅ DONE
 
 > Quick wins. No architecture changes. ~2 hours total.
 
-### 1.1 Replace All Hardcoded Secrets
+### 1.1 Replace All Hardcoded Secrets ✅
 
 **Files:** `.env`, `backend/app/config.py`, `backend_b2c/app/config.py`
 
 **What to do:**
-- Generate real cryptographic secrets for **every** key:
-  ```bash
-  python -c "import secrets; print(secrets.token_hex(32))"
-  ```
-- Replace in `.env`:
-  ```env
-  POSTGRES_PASSWORD=<64-char random hex>
-  SECRET_KEY=<64-char random hex>
-  B2C_SECRET_KEY=<64-char random hex>
-  ```
-- Remove hardcoded defaults from `config.py` — make them **required** (no default value), so the app crashes on startup if `.env` is missing a secret instead of silently using a weak default.
-- Create a `.env.example` with placeholder values for new developers.
+- ~~Generate real cryptographic secrets for **every** key~~
+- ~~Replace in `.env`~~
+- ~~Remove hardcoded defaults from `config.py`~~
+- ~~Create a `.env.example` with placeholder values for new developers.~~
 
 ---
 
-### 1.2 Disable Debug Mode by Default
+### 1.2 Disable Debug Mode by Default ✅
 
 **Files:** `backend/app/config.py`, `backend_b2c/app/config.py`
 
@@ -38,121 +30,56 @@
 + debug: bool = False
 ```
 
-Debug mode logs every SQL query (including user data) and outputs full stack traces to the client. Set to `True` only via `DEBUG=true` in `.env` for local dev.
+~~Debug mode logs every SQL query (including user data) and outputs full stack traces to the client. Set to `True` only via `DEBUG=true` in `.env` for local dev.~~
 
 ---
 
-### 1.3 Add Password Validation
+### 1.3 Add Password Validation ✅
 
 **File:** `backend_b2c/app/api/schemas.py`
 
-```python
-from pydantic import field_validator
+~~Added `field_validator` to `UserCreate`.~~
 
-class UserCreate(BaseModel):
-    email: EmailStr
-    password: str
-    display_name: Optional[str] = None
-    referral_code: Optional[str] = None
-
-    @field_validator("password")
-    def validate_password(cls, v):
-        if len(v) < 8:
-            raise ValueError("Password must be at least 8 characters")
-        if not any(c.isdigit() for c in v):
-            raise ValueError("Password must contain at least one number")
-        return v
-```
 
 ---
 
-### 1.4 Cap Pagination Limits
+### 1.4 Cap Pagination Limits ✅
 
 **Files:** All endpoints with `limit` parameters — `admin/users.py`, `admin/transactions.py`, `leaderboard.py`, `components.py`
 
-```python
-from fastapi import Query
-
-def list_users(skip: int = Query(default=0, ge=0), limit: int = Query(default=20, ge=1, le=100), ...):
-```
-
-This prevents attackers from dumping entire tables with `?limit=999999`.
+~~Added `Query(default=10, ge=1, le=100)` to prevent fetching too many records.~~
 
 ---
 
-### 1.5 Remove Emails from Leaderboard
+### 1.5 Remove Emails from Leaderboard ✅
 
 **File:** `backend_b2c/app/api/leaderboard.py`
 
-Remove the `email` field entirely from `LeaderboardUser` and the response. Public endpoints should never expose email addresses, even masked ones.
-
-```diff
-  class LeaderboardUser(BaseModel):
-      display_name: str | None
--     email: str
-      total_referrals: int
-```
+~~Removed the `email` field entirely from `LeaderboardUser` and the response.~~
 
 ---
 
-### 1.6 Sanitize Search Input (SQL Wildcards)
+### 1.6 Sanitize Search Input (SQL Wildcards) ✅
 
 **File:** `backend/app/api/endpoints/components.py`
 
-```python
-if search:
-    safe_search = search.replace("%", r"\%").replace("_", r"\_")
-    base_query = base_query.where(
-        Component.name.ilike(f"%{safe_search}%", escape="\\")
-    )
-```
+~~Passed search queries through a `.replace` to escape SQL wildcards (% and _).~~
 
 ---
 
-### 1.7 Lock Down Docker Ports
+### 1.7 Lock Down Docker Ports ✅
 
 **File:** `docker-compose.yml`
 
-```diff
-  postgres:
-    ports:
--     - "5432:5432"
-+     - "127.0.0.1:5432:5432"
-
-  redis:
-    ports:
--     - "6379:6379"
-+     - "127.0.0.1:6379:6379"
-```
-
-Add a Redis password:
-```yaml
-redis:
-  command: redis-server --requirepass ${REDIS_PASSWORD}
-```
+~~Bound Postgres and Redis ports to `127.0.0.1`.~~
 
 ---
 
-### 1.8 Tighten CORS
+### 1.8 Tighten CORS ✅
 
 **Files:** Both `main.py` files
 
-```diff
-  app.add_middleware(
-      CORSMiddleware,
-      allow_origins=[
-          "http://localhost:3000",
-          "http://127.0.0.1:3000",
-+         # Add production domain when you deploy:
-+         # "https://pclagbe.com",
-      ],
-      allow_credentials=True,
--     allow_methods=["*"],
--     allow_headers=["*"],
-+     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-+     allow_headers=["Authorization", "Content-Type"],
-  )
-```
+~~Restricted `allow_methods` and `allow_headers` in both APIs.~~
 
 ---
 
@@ -223,33 +150,59 @@ Add a global middleware that strips dangerous characters from all string inputs 
 
 ---
 
+## Phase 2.5 — Background Tasks & Workers (Day 3)
+
+> **CRITICAL FIX for Scalability:** Currently, scrapers are run via `APScheduler` inside the FastAPI `lifespan`. If you scale FastAPI to multiple workers (e.g. `--workers 4`), the scheduler runs 4 times, causing DB race conditions and scraper IP bans.
+
+**Target Architecture:**
+Decouple the web API from the background scrapers.
+
+**Option 1: The Redis Lock (Quickest Fix)**
+Keep the scheduler in FastAPI, but use Redis to ensure only 1 worker can run the job:
+```python
+import redis
+import time
+
+r = redis.from_url(settings.redis_url)
+
+def safe_scrape_job():
+    # Try to acquire a lock for 10 minutes
+    lock_acquired = r.set("scraper_lock", "locked", nx=True, ex=600)
+    if not lock_acquired:
+        print("Another worker is already scraping. Skipping.")
+        return
+        
+    try:
+        run_all_scrapers()
+    finally:
+        r.delete("scraper_lock")
+```
+
+**Option 2: Standalone Scraper Service (Best Practice for 10k+ Users)**
+Remove `APScheduler` from FastAPI entirely. Create a new container in `docker-compose.yml` that just runs a python script:
+```yaml
+  scraper_worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.worker
+    depends_on:
+      - postgres
+      - redis
+    command: python run_full_scrape.py
+```
+*Note: Until this is implemented, **keep your API at `--workers 1`**.*
+
+---
+
 ## Phase 3 — Database & Performance (Day 4–5)
 
 > This is where you go from ~500 users to ~10,000+ users.
 
-### 3.1 Connection Pooling
+### 3.1 Connection Pooling ✅
 
 **Files:** Both `database.py`
 
-```python
-engine = create_engine(
-    settings.database_url,
-    pool_size=20,
-    max_overflow=30,
-    pool_timeout=30,
-    pool_recycle=1800,
-    pool_pre_ping=True,
-    echo=False,
-)
-```
-
-| Setting | Value | Why |
-|---|---|---|
-| `pool_size` | 20 | 20 persistent connections ready to use |
-| `max_overflow` | 30 | Extra 30 connections for traffic spikes (total burst = 50) |
-| `pool_timeout` | 30s | How long to wait for a connection before erroring |
-| `pool_recycle` | 1800s | Recycle connections every 30 min to avoid stale connections |
-| `pool_pre_ping` | True | Verify connection is alive before handing it out |
+~~Configured `pool_size`, `max_overflow`, `pool_timeout`, `pool_recycle`, and `pool_pre_ping` for the database engines in both backends to handle concurrent connections.~~
 
 ---
 

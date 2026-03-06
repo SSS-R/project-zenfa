@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlmodel import Session, select
 from typing import List, Optional
 from uuid import UUID
@@ -18,8 +18,8 @@ router = APIRouter(dependencies=[Depends(get_current_admin_user)])
 @router.get("/", response_model=List[TransactionResponse])
 def list_transactions(
     status: Optional[str] = None,
-    skip: int = 0, 
-    limit: int = 100, 
+    skip: int = Query(default=0, ge=0), 
+    limit: int = Query(default=100, ge=1, le=100), 
     db: Session = Depends(get_session)
 ):
     """List transactions. Optionally filter by status."""

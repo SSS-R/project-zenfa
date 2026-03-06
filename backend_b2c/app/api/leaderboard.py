@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session, select
 from typing import List
 from pydantic import BaseModel
@@ -10,14 +10,13 @@ router = APIRouter()
 
 class LeaderboardUser(BaseModel):
     display_name: str | None
-    email: str
     total_referrals: int
 
     class Config:
         from_attributes = True
 
 @router.get("/", response_model=List[LeaderboardUser])
-def get_leaderboard(limit: int = 10, db: Session = Depends(get_session)):
+def get_leaderboard(limit: int = Query(default=10, ge=1, le=100), db: Session = Depends(get_session)):
     """Fetch the top users by total referrals."""
     statement = (
         select(User)
@@ -27,13 +26,11 @@ def get_leaderboard(limit: int = 10, db: Session = Depends(get_session)):
     )
     users = db.exec(statement).all()
     
-    # Mask emails for privacy since this might be a public board
+    # Format results
     result = []
     for user in users:
-        masked_email = user.email.split("@")[0][:3] + "***@" + user.email.split("@")[1] if "@" in user.email else "Hidden"
         result.append({
             "display_name": user.display_name or "Anonymous Builder",
-            "email": masked_email,
             "total_referrals": user.total_referrals
         })
         

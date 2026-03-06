@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlmodel import Session, select
 from typing import List
 from uuid import UUID
@@ -18,7 +18,7 @@ class UserUpdateRole(BaseModel):
 router = APIRouter(dependencies=[Depends(get_current_admin_user)])
 
 @router.get("/", response_model=List[UserResponse])
-def list_users(skip: int = 0, limit: int = 100, db: Session = Depends(get_session)):
+def list_users(skip: int = Query(default=0, ge=0), limit: int = Query(default=100, ge=1, le=100), db: Session = Depends(get_session)):
     """List all users (Admin only)."""
     statement = select(User).offset(skip).limit(limit)
     users = db.exec(statement).all()
