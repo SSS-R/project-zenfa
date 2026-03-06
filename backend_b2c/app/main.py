@@ -4,6 +4,7 @@ from contextlib import asynccontextmanager
 
 from .config import get_settings
 from .database import init_db
+from .services.news.scheduler import start_scheduler, shutdown_scheduler
 
 settings = get_settings()
 
@@ -13,12 +14,15 @@ async def lifespan(app: FastAPI):
     """Application lifespan handler."""
     # Startup: Initialize database tables (for dev, use Alembic in prod)
     init_db()
+    # Startup: Start bg schedulers
+    start_scheduler()
     yield
     # Shutdown: Cleanup resources
+    shutdown_scheduler()
 
 
-from .api import auth, payments, support, announcements, leaderboard
-from .api.admin import users as admin_users, transactions as admin_transactions, tickets as admin_tickets, analytics as admin_analytics, announcements as admin_announcements
+from .api import auth, payments, support, announcements, leaderboard, articles
+from .api.admin import users as admin_users, transactions as admin_transactions, tickets as admin_tickets, analytics as admin_analytics, announcements as admin_announcements, articles as admin_articles
 
 app = FastAPI(
     title=settings.api_title,
@@ -47,6 +51,7 @@ app.include_router(payments.router, prefix="/payments", tags=["Payments"])
 app.include_router(support.router, prefix="/support", tags=["Support"])
 app.include_router(announcements.router, prefix="/announcements", tags=["Announcements"])
 app.include_router(leaderboard.router, prefix="/leaderboard", tags=["Leaderboard"])
+app.include_router(articles.router, prefix="/articles", tags=["Articles"])
 
 # Admin Includes
 app.include_router(admin_users.router, prefix="/admin/users", tags=["Admin Users"])
@@ -54,6 +59,7 @@ app.include_router(admin_transactions.router, prefix="/admin/transactions", tags
 app.include_router(admin_tickets.router, prefix="/admin/tickets", tags=["Admin Tickets"])
 app.include_router(admin_analytics.router, prefix="/admin/analytics", tags=["Admin Analytics"])
 app.include_router(admin_announcements.router, prefix="/admin/announcements", tags=["Admin Announcements"])
+app.include_router(admin_articles.router, prefix="/admin/articles", tags=["Admin Articles"])
 
 
 @app.get("/")
