@@ -203,6 +203,8 @@ All routes live in `backend_b2c/app/api/articles.py` (public) and `backend_b2c/a
 
 ### Admin Endpoints (Requires Auth via FastAPI `Depends()` verifying admin JWT/session)
 
+**Security Recommendation:** Ensure the existing admin dependency/middleware properly restricts access to `/admin/articles/*` by verifying the JWT and ensuring `role == RoleEnum.ADMIN`.
+
 | Method | Path | Description |
 |---|---|---|
 | `GET` | `/admin/articles` | All articles (including drafts). Filterable by `status` |

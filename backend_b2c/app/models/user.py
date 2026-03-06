@@ -41,3 +41,4 @@ class User(UserBase, table=True):
     transactions: List["Transaction"] = Relationship(back_populates="user")
     support_tickets: List["SupportTicket"] = Relationship(back_populates="user")
     support_messages: List["SupportMessage"] = Relationship(back_populates="sender")
+    articles: List["Article"] = Relationship(back_populates="author")

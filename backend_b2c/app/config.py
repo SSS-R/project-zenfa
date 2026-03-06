@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     # Engine Gateway
     engine_internal_url: str = "http://localhost:8000"
 
+    # News scraping
+    gemini_api_key: str = ""
+    rss_scrape_interval_hours: int = 2
+    reddit_scrape_interval_hours: int = 4
+    vendor_scrape_interval_hours: int = 6
+
     class Config:
         env_file = ".env"
 
