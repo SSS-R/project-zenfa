@@ -7,7 +7,7 @@ from datetime import datetime
 from app.database import get_session
 from app.models.user import User, RoleEnum
 from app.models.article import Article, ArticleCreate, ArticleUpdate, ArticleRead, StatusEnum
-from app.services.auth import get_current_user
+from app.api.deps import get_current_user
 
 router = APIRouter()
 

@@ -35,7 +35,7 @@ class PaginatedComponentResponse(BaseModel):
 
 router = APIRouter()
 
-@router.get("/", response_model=PaginatedComponentResponse)
+@router.get("", response_model=PaginatedComponentResponse)
 async def read_components(
     page: int = 1,
     page_size: int = 50,

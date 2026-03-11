@@ -167,6 +167,17 @@ async def batch_save_products(scraped_results, scraper, component_type, normaliz
     for i in range(0, len(scraped_results), batch_size):
         batch = scraped_results[i:i + batch_size]
         
+        # Temporary Fix for Neon DB Idle Connections closing during long scrape breaks
+        from sqlalchemy import text
+        try:
+            session.exec(text("SELECT 1"))
+        except Exception:
+            logger.warning("Database connection dropped during idle time, reconnecting...")
+            session.rollback()
+            session.close()
+            from app.database import engine
+            session = Session(engine)
+
         try:
             for scraped_data, p_url in batch:
                 match_id = normalization.normalize_product(session, scraped_data, component_type)
@@ -303,7 +314,7 @@ async def process_vendor_category(
 async def _try_scrape_url(scraper, url, component_type, normalization, session):
     """Try scraping a specific URL with error handling and duplicate prevention"""
     try:
-        # Collect all product URLs from first 2 pages (reduced for safety)
+        # Collect all product URLs from first 3 pages (reduced for safety)
         all_product_urls = []
         current_url = url
         max_pages = 2 # Reduced for better stealth and IP protection
@@ -339,11 +350,12 @@ async def _try_scrape_url(scraper, url, component_type, normalization, session):
             
             current_url = next_url
         
-        # Limit to 30-40 products per category for safety and speed
-        target_products = random.randint(30, 40)
-        if len(all_product_urls) > target_products:
-            logger.info(f"🎯 Limiting to {target_products} products (from {len(all_product_urls)} found)")
-            all_product_urls = all_product_urls[:target_products]
+        # No longer artificially limit to 30-40 products. 
+        # Since max_pages is configured (e.g. 3), we want all collected products from those pages.
+        # target_products = random.randint(30, 40)
+        # if len(all_product_urls) > target_products:
+        #     logger.info(f"🎯 Limiting to {target_products} products (from {len(all_product_urls)} found)")
+        #     all_product_urls = all_product_urls[:target_products]
         
         total_products = len(all_product_urls)
         logger.info(f"🎯 Total unique products to process: {total_products}")

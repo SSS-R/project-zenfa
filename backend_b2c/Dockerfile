@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 
 # Set working directory
 WORKDIR /app
@@ -8,6 +8,10 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     gcc \
     && rm -rf /var/lib/apt/lists/*
+
+# Setup virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Copy requirements (if any, or just install them directly)
 COPY requirements.txt .

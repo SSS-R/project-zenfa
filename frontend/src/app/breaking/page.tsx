@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { Clock, TrendingUp } from "lucide-react";
@@ -18,75 +18,16 @@ const categoryStyles: Record<string, string> = {
 
 const categories = ["All", "GPU", "CPU", "RAM", "Deals", "Benchmarks", "BD News"];
 
-// ─── Mock Articles ───────────────────────────────────────────────────────────
+// ─── Constants & Mock Data ───────────────────────────────────────────────────────────
 
-const featuredArticle = {
-    id: 0,
-    category: "GPU",
-    badge: "🔴 HOT",
-    title: "NVIDIA RTX 5070 Officially Announced — Here's What It Means for BD Prices",
-    excerpt: "The RTX 5070 launches at $549 globally. We break down what the BD price will likely be and when you can realistically expect to find one at StarTech or Ryans.",
-    meta: "GPU · 2h ago · 3 min read",
-    source: "VideoCardz",
-    slug: "rtx-5070-bd-pricing",
+const API_TO_UI_CAT: Record<string, string> = {
+    "gpu": "GPU",
+    "cpu": "CPU",
+    "ram_storage": "RAM",
+    "deals": "Deals",
+    "benchmarks": "Benchmarks",
+    "bd_news": "BD News"
 };
-
-const articles = [
-    {
-        id: 1,
-        category: "RAM",
-        title: "DDR5 Prices Hit All-Time Low in Bangladesh",
-        excerpt: "A perfect storm of oversupply and falling USD rates has pushed DDR5 kits below the DDR4 equivalent prices.",
-        meta: "5h ago · 2 min read",
-        source: "TechPowerUp",
-        slug: "ddr5-prices-bd-low",
-    },
-    {
-        id: 2,
-        category: "CPU",
-        title: "Ryzen 9000X3D: Release Date & Expected BD Pricing",
-        excerpt: "AMD confirms the Ryzen 9 9900X3D. We estimate Bangladesh availability by late Q2 2026 in the ৳55,000–৳60,000 range.",
-        meta: "1d ago · 4 min read",
-        source: "VideoCardz",
-        slug: "ryzen-9000x3d-bd",
-    },
-    {
-        id: 3,
-        category: "GPU",
-        title: "RTX 4060 vs RX 7600 — Our AI's Verdict in 2026",
-        excerpt: "We ran both builds through our AI engine across three use cases. The results might surprise you.",
-        meta: "2d ago · 5 min read",
-        source: "Reddit",
-        slug: "rtx-4060-vs-rx-7600-2026",
-    },
-    {
-        id: 4,
-        category: "Deals",
-        title: "StarTech Slashes Prices on 20+ Components This Weekend",
-        excerpt: "StarTech's March clearance sale includes some genuinely good deals on RTX 4060 Ti cards and Ryzen 5 CPUs.",
-        meta: "3d ago · 2 min read",
-        source: "StarTech",
-        slug: "startech-march-sale",
-    },
-    {
-        id: 5,
-        category: "Benchmarks",
-        title: "Is 16GB RAM Still Enough for Gaming in 2026?",
-        excerpt: "We tested 8 popular titles with 16GB vs 32GB across three use cases. Here is the definitive answer.",
-        meta: "4d ago · 6 min read",
-        source: "Tom's Hardware",
-        slug: "16gb-vs-32gb-2026",
-    },
-    {
-        id: 6,
-        category: "BD News",
-        title: "PC Lagbe Hits 500+ Builds Generated — Community Roundup",
-        excerpt: "We look back at the most popular builds from the community and what trends they reveal about BD gamers.",
-        meta: "5d ago · 3 min read",
-        source: "PC Lagbe",
-        slug: "500-builds-roundup",
-    },
-];
 
 const priceMovers = [
     { name: "RTX 4060", price: "৳38,500", change: "↓ ৳2,000", pct: "5.2%", down: true },
@@ -100,9 +41,32 @@ const redditHot = [
     { title: "\"RX 9070 XT review megathread\"", upvotes: "1.2k" },
 ];
 
+// Helper to format articles from API
+function mapApiArticle(apiData: any) {
+    const pubDate = apiData.published_at ? new Date(apiData.published_at) : new Date();
+    const isToday = pubDate.toDateString() === new Date().toDateString();
+    let timeStr = pubDate.toLocaleDateString();
+    if (isToday) {
+        // rough hours ago
+        const diffMs = Date.now() - pubDate.getTime();
+        const diffHrs = Math.max(1, Math.floor(diffMs / 3600000));
+        timeStr = `${diffHrs}h ago`;
+    }
+
+    return {
+        id: apiData.id,
+        category: API_TO_UI_CAT[apiData.category] || "BD News",
+        title: apiData.title,
+        excerpt: apiData.excerpt,
+        meta: `${timeStr} · ${apiData.read_time_minutes || 2} min read`,
+        source: apiData.source_name || "News Source",
+        slug: apiData.slug,
+    };
+}
+
 // ─── Article Grid Card ────────────────────────────────────────────────────────
 
-function ArticleCard({ article }: { article: typeof articles[0] }) {
+function ArticleCard({ article }: { article: any }) {
     const catStyle = categoryStyles[article.category] ?? "bg-neutral-800 text-neutral-400";
 
     return (
@@ -124,14 +88,16 @@ function ArticleCard({ article }: { article: typeof articles[0] }) {
             </div>
 
             {/* Content */}
-            <div className="p-5">
-                <h3 className="text-base font-bold text-white group-hover:text-[#4f9e97] transition-colors line-clamp-2 mb-2">
-                    <Link href={`/breaking/${article.slug}`}>{article.title}</Link>
-                </h3>
-                <p className="text-sm text-neutral-400 line-clamp-2 mb-4">{article.excerpt}</p>
-                <div className="flex items-center justify-between">
+            <div className="p-5 flex flex-col justify-between" style={{ minHeight: "180px" }}>
+                <div>
+                    <h3 className="text-base font-bold text-white group-hover:text-[#4f9e97] transition-colors line-clamp-2 mb-2">
+                        <Link href={`/breaking/${article.slug}`}>{article.title}</Link>
+                    </h3>
+                    <p className="text-sm text-neutral-400 line-clamp-2 mb-4">{article.excerpt}</p>
+                </div>
+                <div className="flex items-center justify-between mt-auto pt-2 border-t border-neutral-800">
                     <span className="text-xs text-neutral-600">{article.meta}</span>
-                    <span className="text-xs text-neutral-500">📖 {article.source}</span>
+                    <span className="text-xs text-neutral-500 whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px]">📖 {article.source}</span>
                 </div>
             </div>
         </motion.div>
@@ -142,10 +108,57 @@ function ArticleCard({ article }: { article: typeof articles[0] }) {
 
 export default function BreakingPage() {
     const [activeCategory, setActiveCategory] = useState("All");
+    const [articles, setArticles] = useState<any[]>([]);
+    const [featuredArticle, setFeaturedArticle] = useState<any | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    // Fetch articles from the B2C Backend
+    useEffect(() => {
+        async function fetchNews() {
+            setLoading(true);
+            try {
+                // Fetch the featured article (if any is marked)
+                let tempFeatured = null;
+                try {
+                    const featRes = await fetch("http://localhost:8001/articles/featured");
+                    if (featRes.ok) {
+                        const featData = await featRes.json();
+                        tempFeatured = mapApiArticle(featData);
+                    }
+                } catch (e) {
+                    // ignore if no featured article
+                }
+                
+                // Fetch the list of articles
+                const res = await fetch("http://localhost:8001/articles?limit=15");
+                if (res.ok) {
+                    const data = await res.json();
+                    const mappedArticles = data.map(mapApiArticle);
+                    
+                    if (tempFeatured) {
+                        setFeaturedArticle(tempFeatured);
+                        // Make sure featured isn't duplicated in the list
+                        setArticles(mappedArticles.filter((a: any) => a.id !== tempFeatured.id));
+                    } else if (mappedArticles.length > 0) {
+                        // Fallback: use newest as featured
+                        setFeaturedArticle(mappedArticles[0]);
+                        setArticles(mappedArticles.slice(1));
+                    } else {
+                        setArticles([]);
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch news", err);
+            } finally {
+                setLoading(false);
+            }
+        }
+        fetchNews();
+    }, []);
 
     const filtered = activeCategory === "All"
         ? articles
-        : articles.filter(a => a.category === activeCategory);
+        : articles.filter((a: any) => a.category === activeCategory);
 
     return (
         <main className="bg-black min-h-screen pt-32 pb-20">
@@ -158,8 +171,9 @@ export default function BreakingPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4 }}
                 >
-                    <h1 className="text-4xl md:text-5xl font-black text-white mb-3">
-                        ⚡ Breaking
+                    <h1 className="text-4xl md:text-5xl font-black text-white mb-3 flex items-center gap-3">
+                        ⚡ Breaking 
+                        {loading && <span className="text-sm font-normal text-neutral-500 animate-pulse bg-neutral-900 px-3 py-1 rounded-full border border-neutral-800">Syncing Feed...</span>}
                     </h1>
                     <p className="text-lg text-neutral-400">
                         The latest in PC hardware, prices, and tech — filtered for Bangladesh.
@@ -186,7 +200,7 @@ export default function BreakingPage() {
                 <div className="grid grid-cols-1 xl:grid-cols-[1fr_320px] gap-8">
                     <div>
                         {/* Featured / Hero Article */}
-                        {activeCategory === "All" && (
+                        {activeCategory === "All" && featuredArticle && !loading && (
                             <motion.div
                                 className="glass-card-glow p-0 overflow-hidden mb-8 grid md:grid-cols-2 group cursor-pointer hover:border-[#4f9e97]/30 transition-colors"
                                 initial={{ opacity: 0, scale: 0.98 }}
@@ -194,8 +208,10 @@ export default function BreakingPage() {
                                 transition={{ duration: 0.5 }}
                             >
                                 {/* Hero Image */}
-                                <div className="aspect-video md:aspect-auto bg-gradient-to-br from-neutral-900 via-neutral-800 to-[#4f9e97]/20 relative flex items-center justify-center min-h-[200px]">
-                                    <div className="text-8xl opacity-30 select-none">🖥️</div>
+                                <div className="aspect-video md:aspect-auto bg-gradient-to-br from-neutral-900 via-neutral-800 to-[#4f9e97]/20 relative flex items-center justify-center min-h-[250px]">
+                                    <div className="text-8xl opacity-30 select-none">
+                                         {featuredArticle.category === "GPU" ? "🖥️" : featuredArticle.category === "CPU" ? "⚙️" : featuredArticle.category === "RAM" ? "💾" : featuredArticle.category === "Deals" ? "🏷️" : featuredArticle.category === "Benchmarks" ? "📊" : "🇧🇩"}
+                                    </div>
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent to-black/50 hidden md:block" />
                                 </div>
 
@@ -204,16 +220,16 @@ export default function BreakingPage() {
                                     <div>
                                         <div className="flex items-center gap-2 mb-4">
                                             <span className="bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-sm animate-pulse">🔴 HOT</span>
-                                            <span className={`text-xs font-bold px-2.5 py-1 rounded-sm ${categoryStyles["GPU"]}`}>GPU</span>
+                                            <span className={`text-xs font-bold px-2.5 py-1 rounded-sm ${categoryStyles[featuredArticle.category] || categoryStyles["BD News"]}`}>{featuredArticle.category}</span>
                                         </div>
-                                        <h2 className="text-2xl font-black text-white group-hover:text-[#4f9e97] transition-colors mb-4 leading-tight">
+                                        <h2 className="text-xl md:text-2xl font-black text-white group-hover:text-[#4f9e97] transition-colors mb-4 leading-tight">
                                             <Link href={`/breaking/${featuredArticle.slug}`}>{featuredArticle.title}</Link>
                                         </h2>
-                                        <p className="text-neutral-400 leading-relaxed">{featuredArticle.excerpt}</p>
+                                        <p className="text-neutral-400 line-clamp-3 leading-relaxed">{featuredArticle.excerpt}</p>
                                     </div>
-                                    <div className="mt-6">
-                                        <p className="text-xs text-neutral-600 mb-3">{featuredArticle.meta} · 📖 {featuredArticle.source}</p>
-                                        <Link href={`/breaking/${featuredArticle.slug}`} className="text-sm font-bold text-[#4f9e97] hover:underline">
+                                    <div className="mt-6 flex items-center justify-between border-t border-neutral-800 pt-4">
+                                        <p className="text-xs text-neutral-600 truncate max-w-[150px]">{featuredArticle.meta} · 📖 {featuredArticle.source}</p>
+                                        <Link href={`/breaking/${featuredArticle.slug}`} className="text-sm font-bold text-[#4f9e97] hover:underline whitespace-nowrap ml-4">
                                             Read Article →
                                         </Link>
                                     </div>
@@ -223,15 +239,28 @@ export default function BreakingPage() {
 
                         {/* Article Grid */}
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                            {filtered.map(article => (
-                                <ArticleCard key={article.id} article={article} />
-                            ))}
+                            {loading ? (
+                                // Skeletons while fetching
+                                Array.from({ length: 6 }).map((_, i) => (
+                                    <div key={i} className="glass-card h-64 animate-pulse bg-neutral-900/50"></div>
+                                ))
+                            ) : filtered.length === 0 ? (
+                                <div className="col-span-full py-12 text-center text-neutral-500">
+                                    No articles found for this category yet.
+                                </div>
+                            ) : (
+                                filtered.map((article: any) => (
+                                    <ArticleCard key={article.id} article={article} />
+                                ))
+                            )}
                         </div>
 
                         {/* Load More */}
-                        <div className="text-center mt-10">
-                            <button className="btn-secondary text-sm px-8 py-3">Load More Articles</button>
-                        </div>
+                        {!loading && filtered.length > 0 && (
+                            <div className="text-center mt-10">
+                                <button className="btn-secondary text-sm px-8 py-3">Load More Articles</button>
+                            </div>
+                        )}
                     </div>
 
                     {/* Sidebar */}
