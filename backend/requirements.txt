@@ -1,24 +1,24 @@
 # FastAPI & Server
-fastapi==0.115.0
-uvicorn[standard]==0.30.0
-python-multipart==0.0.9
+fastapi
+uvicorn[standard]
+python-multipart
 
 # Database
-sqlmodel==0.0.22
-psycopg2-binary==2.9.9
-alembic==1.13.1
+sqlmodel
+psycopg2-binary
+alembic
 
 # Redis & Caching
-redis==5.0.3
+redis
 
 # Utilities
-pydantic-settings==2.2.1
-python-dotenv==1.0.1
-ruff==0.4.4
-tenacity==8.2.3
+pydantic-settings
+python-dotenv
+ruff
+tenacity
 
 # Scraping (Phase 2)
-playwright==1.42.0
-beautifulsoup4==4.12.3
-thefuzz==0.22.1
-python-Levenshtein==0.25.0
+playwright
+beautifulsoup4
+thefuzz
+python-Levenshtein

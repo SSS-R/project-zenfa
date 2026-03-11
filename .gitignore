@@ -54,3 +54,15 @@ env/
 b2c_logs.txt
 migrate_db.py
 
+# backend_b2c specific
+/backend_b2c/venv
+/backend_b2c/.venv
+/backend_b2c/__pycache__/
+/backend_b2c/alembic/__pycache__/
+/backend_b2c/alembic/versions/__pycache__/
+
+# Global OS Files
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+pip_log.txt

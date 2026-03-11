@@ -46,6 +46,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             <Link href="/admin/users" className="block px-4 py-2 rounded-lg hover:bg-neutral-800 text-neutral-300 hover:text-white transition">Users & Tokens</Link>
                             <Link href="/admin/transactions" className="block px-4 py-2 rounded-lg hover:bg-neutral-800 text-neutral-300 hover:text-white transition">Transactions</Link>
                             <Link href="/admin/tickets" className="block px-4 py-2 rounded-lg hover:bg-neutral-800 text-neutral-300 hover:text-white transition">Support Tickets</Link>
+                            <Link href="/admin/articles" className="block px-4 py-2 rounded-lg hover:bg-neutral-800 text-neutral-300 hover:text-white transition">Manage Articles</Link>
                         </nav>
                         <div className="mt-8 pt-6 border-t border-neutral-800">
                             <Link href="/dashboard" className="text-neutral-500 hover:text-white text-sm flex items-center gap-2">

@@ -10,8 +10,8 @@ from ..models.enums import ComponentType
 from ..scraping.schemas import ScrapedProduct
 
 class NormalizationService:
-    # Minimum fuzzy score to even consider a match (raised from 70 → 75)
-    MATCH_THRESHOLD = 75
+    # Minimum fuzzy score to even consider a match (raised from 75 → 88 for safety)
+    MATCH_THRESHOLD = 88
 
     def _get_candidates(self, session: Session, component_type: ComponentType) -> List[Any]:
         return session.exec(select(Component).where(Component.component_type == component_type)).all()
@@ -31,7 +31,7 @@ class NormalizationService:
         result = process.extractOne(
             scraped_data.name,
             choices,
-            scorer=fuzz.token_set_ratio
+            scorer=fuzz.token_sort_ratio
         )
 
         # extractOne with dict returns (match_string, score, key)

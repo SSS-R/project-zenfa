@@ -1,24 +1,6 @@
 version: '3.8'
 
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:16-alpine
-    container_name: zenfa_postgres
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "127.0.0.1:5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   # Redis Cache
   redis:
     image: redis:7-alpine
@@ -46,8 +28,6 @@ services:
       REDIS_URL: ${REDIS_URL}
       SECRET_KEY: ${SECRET_KEY}
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
     volumes:
@@ -67,8 +47,6 @@ services:
       REDIS_URL: ${B2C_REDIS_URL}
       SECRET_KEY: ${B2C_SECRET_KEY}
     depends_on:
-      postgres:
-        condition: service_healthy
       redis:
         condition: service_healthy
     volumes:
@@ -76,5 +54,4 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8001 --workers 1
 
 volumes:
-  postgres_data:
   redis_data:
