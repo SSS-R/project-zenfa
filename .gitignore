@@ -62,7 +62,8 @@ migrate_db.py
 /backend_b2c/alembic/versions/__pycache__/
 
 # Global OS Files
+pip_log.txt
 Thumbs.db
 ehthumbs.db
 [Dd]esktop.ini
-pip_log.txt
+
